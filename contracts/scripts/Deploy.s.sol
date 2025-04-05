@@ -18,7 +18,7 @@ contract Deploy is Script {
         ExperimentDelegation delegation = new ExperimentDelegation();
 
         // Deploy ExperimentERC20 with contract deployer as authorized origin
-        ExperimentERC20 token = new ExperimentERC20(address(msg.sender));
+        ExperimentERC20 token = new ExperimentERC20();
 
         vm.stopBroadcast();
 

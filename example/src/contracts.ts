@@ -133,7 +133,7 @@ export const ExperimentDelegation = {
     { type: 'error', name: 'KeyExpired', inputs: [] },
     { type: 'error', name: 'KeyNotAuthorized', inputs: [] },
   ],
-  address: '0x0D8fab0941Cc8acA04d701A4548E7C6B909345f1',
+  address: '0xFde60F1FE9E8D425272B98beE16aCC795F2B83b9',
 } as const
 
 export const ExperimentERC20 = {
@@ -323,5 +323,5 @@ export const ExperimentERC20 = {
     { type: 'error', name: 'PermitExpired', inputs: [] },
     { type: 'error', name: 'TotalSupplyOverflow', inputs: [] },
   ],
-  address: '0x1725fddAf692aB69D8cB2aD28D8DDbA43A538B14',
+  address: '0x0A8071a6E269E0CAF4900bf6a712160876cda052',
 } as const
