@@ -50,6 +50,7 @@ export const createApp = (endpoint_url: string) => {
           status: 'success',
           result: true,
           credentialSubject: result.credentialSubject,
+          nullifier: result.nullifier,
         });
       }
 
