@@ -160,11 +160,25 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
         return nullifierToAccountsMapping[nullifier];
     }
 
-        /// @notice Verify a self proof and recover account if valid
+    function addAccountForNullifier(uint256 nullifier, address memory account) public {
+        nullifierToAccountsMapping[nullifier].push(account);
+    }
+
+    function removeAccountForNullifier(uint256 nullifier, address account) public {
+        for (uint256 i = 0; i < nullifierToAccountsMapping[nullifier].length; i++) {
+            if (nullifierToAccountsMapping[nullifier][i] == account) {
+                delete nullifierToAccountsMapping[nullifier][i];
+            }
+        }
+    }
+
+    /// @notice Verify a self proof and recover account if valid
     /// @param proof The proof of recovery
     function manualVerifySelfProof(
-        IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof, ECDSA.PublicKey calldata publicKey,
-        KeyType keyType) public override {
+        IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof,
+        ECDSA.PublicKey calldata publicKey,
+        KeyType keyType
+    ) public {
         if (_scope != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_SCOPE_INDEX]) {
             revert InvalidScope();
         }
@@ -189,29 +203,15 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
             })
         );
 
-        // Get the old account address from the user identifier
-        address oldAccount = address(uint160(result.userIdentifier));
+        // Logic to actually recover the account here..
 
-        // Check if the old account has a recovery key set
-        if (accountRecoveryKeys[oldAccount].length == 0) {
-            revert KeyNotAuthorized();
-        }
-
-        // Get the new account address from the revealed data
-        address accountAddress = nullifierToAccountMapping[result.nullifier];
-        if (accountAddress == address(0)) {
-            revert AccountNotFound();
-        }
-
-        ExperimentDelegation(accountAddress).set()
-
-        // address newAccount = address(uint160(result.revealedDataPacked[0]));
-
-        // Transfer the recovery key to the new account
-        // accountRecoveryKeys[newAccount] = accountRecoveryKeys[oldAccount];
-        // delete accountRecoveryKeys[oldAccount];
-
-        // emit AccountRecovered(oldAccount, newAccount);
+        // if (_isWithinBirthdayWindow(result.revealedDataPacked)) {
+        //     _nullifiers[result.nullifier] = true;
+        //     usdc.safeTransfer(address(uint160(result.userIdentifier)), CLAIMABLE_AMOUNT);
+        //     emit USDCClaimed(address(uint160(result.userIdentifier)), CLAIMABLE_AMOUNT);
+        // } else {
+        //     revert("Not eligible: Not within 5 days of birthday");
+        // }
     }
 
     fallback() external payable {}
