@@ -2,13 +2,20 @@ import { SelfBackendVerifier, getUserIdentifier } from '@selfxyz/core';
 import type { SelfVerificationResult } from '@selfxyz/core/dist/common/src/utils/selfAttestation.js';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import {
+  generate30DaysTimestamp,
+  recoverAccountCall,
+} from './contract-call/recovery-client.js';
 import { serverConfig } from './server-config.js';
 
 interface PendingNulliferEntry {
   nullifier: string;
   timestamp: number; // auto add in db
-  publicKey: string;
+  publicKey: { x: bigint; y: bigint };
+  keyType: string;
 }
+
+const nullifierToKeyIndexMapping = new Map<string, bigint>();
 
 // Should be a uuid to entry mapping.
 const pendingNullifierForRecovery = new Map<string, PendingNulliferEntry>();
@@ -20,6 +27,40 @@ export const createApp = (endpoint_url: string) => {
 
   app.get('/', (c) => {
     return c.text('OK');
+  });
+
+  app.post('/register-recovery', async (c) => {
+    const { nullifier, keyIndex } = await c.req.json<{
+      nullifier: string;
+      keyIndex: bigint;
+    }>();
+
+    if (!nullifier || !keyIndex) {
+      return c.json(
+        {
+          status: 'error',
+          message: 'Missing nullifier or keyIndex',
+        },
+        400,
+      );
+    }
+
+    if (nullifierToKeyIndexMapping.has(nullifier)) {
+      return c.json(
+        {
+          status: 'error',
+          message: 'Nullifier already registered',
+        },
+        400,
+      );
+    }
+
+    nullifierToKeyIndexMapping.set(nullifier, keyIndex);
+
+    return c.json({
+      status: 'success',
+      message: 'Recovery registration successful',
+    });
   });
 
   app.get('/verify-result/:id', async (c) => {
@@ -48,12 +89,8 @@ export const createApp = (endpoint_url: string) => {
         );
       }
 
-      console.log('Received proof:', proof);
-      console.log('Received publicSignals:', publicSignals);
-
       // Extract user ID from the proof, in this case the userId should be an address.
       const userId = await getUserIdentifier(publicSignals);
-      console.log('Extracted userId:', userId);
 
       // Initialize and configure the verifier
       const selfBackendVerifier = new SelfBackendVerifier(
@@ -63,8 +100,6 @@ export const createApp = (endpoint_url: string) => {
 
       // Verify the proof
       const result = await selfBackendVerifier.verify(proof, publicSignals);
-
-      console.log('Verification result:', result);
 
       if (result.isValid) {
         // Return successful verification response
@@ -99,16 +134,29 @@ export const createApp = (endpoint_url: string) => {
     }
   });
 
-  app.post('submit-recovery', async (c) => {
-    const { nullifier, publicKey } = await c.req.json<{
+  app.post('/submit-recovery', async (c) => {
+    const { nullifier, publicKey, userId, keyType } = await c.req.json<{
+      userId: string;
       nullifier: string;
-      publicKey: string;
+      publicKey: { x: bigint; y: bigint };
+      keyType: string;
     }>();
 
-    pendingNullifierForRecovery.set(nullifier, {
+    if (!nullifier || !publicKey || !keyType || !userId) {
+      return c.json(
+        {
+          status: 'error',
+          message: 'Missing nullifier or publicKey or keyType or userId',
+        },
+        400,
+      );
+    }
+
+    pendingNullifierForRecovery.set(userId, {
       nullifier,
       publicKey,
       timestamp: Date.now(),
+      keyType,
     });
 
     return c.json({
@@ -149,8 +197,40 @@ export const createApp = (endpoint_url: string) => {
       const result = await selfBackendVerifier.verify(proof, publicSignals);
 
       if (result.isValid) {
-        // Return successful verification response
-        verificationResults.set(userId, result);
+        const currentKeyIndex = nullifierToKeyIndexMapping.get(userId);
+        const newKey = pendingNullifierForRecovery.get(userId);
+        const expiry = generate30DaysTimestamp();
+
+        if (!newKey) {
+          return c.json(
+            {
+              status: 'error',
+              message: 'New key not found',
+            },
+            400,
+          );
+        }
+
+        if (!currentKeyIndex) {
+          return c.json(
+            {
+              status: 'error',
+              message: 'Current key index not found',
+            },
+            400,
+          );
+        }
+
+        // Call the contract to recover the account
+        const keyIndex = await recoverAccountCall(
+          newKey.publicKey,
+          newKey.keyType,
+          expiry,
+          currentKeyIndex,
+        );
+
+        nullifierToKeyIndexMapping.set(newKey.nullifier, keyIndex);
+
         return c.json({
           status: 'success',
           result: true,

@@ -245,7 +245,7 @@ export namespace Account {
       functionName: 'execute',
       args: [calls_encoded, { r, s }, webauthn, 0, false],
     });
-    console.log("sent execute transaction");
+    console.log('sent execute transaction');
     return hash;
   }
 

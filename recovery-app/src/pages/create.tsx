@@ -11,7 +11,8 @@ export default function Create() {
             Create Recoverable Account
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            We will guide you through the process of creating a new recoverable account.
+            We will guide you through the process of creating a new recoverable
+            account.
           </p>
           <div className="mt-2 flex items-center justify-center gap-2">
             <p className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer">

@@ -8,8 +8,8 @@ import UpdatePasskey from './pages/update-passkey';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
-import { SelfxyzAppProvider } from './hooks/useSelfxyz';
 import { queryClient, wagmiConfig } from './config';
+import { SelfxyzAppProvider } from './hooks/useSelfxyz';
 
 function App() {
   return (

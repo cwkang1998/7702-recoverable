@@ -1,9 +1,9 @@
 import { SelfQRcode } from '@selfxyz/qrcode';
-import { InitializeAccount } from '../components/InitializeAccount';
 import { useState } from 'react';
-import { useSelfxyz } from '../hooks/useSelfxyz';
-import { appConfig } from '../app-config';
 import { useNavigate } from 'react-router';
+import { appConfig } from '../app-config';
+import { InitializeAccount } from '../components/InitializeAccount';
+import { useSelfxyz } from '../hooks/useSelfxyz';
 
 export default function Register() {
   const { selfApp } = useSelfxyz();
@@ -15,30 +15,34 @@ export default function Register() {
 
   const handleSelfVerificationSuccess = async () => {
     const verificationId = selfApp.userId;
-    const response = await fetch(`${appConfig.endpoint}-result/${verificationId}`);
+    const response = await fetch(
+      `${appConfig.endpoint}-result/${verificationId}`,
+    );
     if (response.ok) {
       const result = await response.json();
       console.log('Stored verification result:', result);
       setNullifier(result.nullifier);
-      
+
       // Start submitting to backend
       setIsSubmitting(true);
 
       // Navigate to homepage after successful submission
       navigate('/');
       try {
-        const submitResponse = await fetch('http://localhost:3000/submit-nullifier', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const submitResponse = await fetch(
+          'http://localhost:3000/submit-nullifier',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nullifier: result.nullifier }),
           },
-          body: JSON.stringify({ nullifier: result.nullifier }),
-        });
-        
+        );
+
         if (!submitResponse.ok) {
           throw new Error('Failed to submit nullifier');
         }
-        
       } catch (error) {
         console.error('Error submitting nullifier:', error);
       } finally {
@@ -47,7 +51,10 @@ export default function Register() {
     }
   };
 
-  const handlePasskeyCreated = (result: { hash: string; publicKey: { x: bigint; y: bigint } }) => {
+  const handlePasskeyCreated = (result: {
+    hash: string;
+    publicKey: { x: bigint; y: bigint };
+  }) => {
     console.log(result);
     setPasskeyCreated(true);
     setIsCreatingPasskey(false);
@@ -72,8 +79,8 @@ export default function Register() {
         </div>
 
         {!passkeyCreated ? (
-          <InitializeAccount 
-            onSuccess={handlePasskeyCreated} 
+          <InitializeAccount
+            onSuccess={handlePasskeyCreated}
             onStart={handlePasskeyCreationStart}
           />
         ) : !nullifier ? (
@@ -98,4 +105,4 @@ export default function Register() {
       </div>
     </div>
   );
-} 
+}

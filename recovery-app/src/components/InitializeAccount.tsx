@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAccount } from 'wagmi';
-import { Account } from '../modules/Account';
-import { client } from '../config';
 import { celoAlfajores } from 'wagmi/chains';
+import { client } from '../config';
+import { Account } from '../modules/Account';
 
 interface InitializeAccountProps {
-  onSuccess?: (result: { hash: string; publicKey: { x: bigint; y: bigint } }) => void;
+  onSuccess?: (result: {
+    hash: string;
+    publicKey: { x: bigint; y: bigint };
+  }) => void;
   onStart?: () => void;
 }
 
-export function InitializeAccount({ onSuccess, onStart }: InitializeAccountProps) {
+export function InitializeAccount({
+  onSuccess,
+  onStart,
+}: InitializeAccountProps) {
   const { data: result, ...createMutation } = Account.useCreate({
     client,
   });
@@ -25,10 +31,10 @@ export function InitializeAccount({ onSuccess, onStart }: InitializeAccountProps
       }
       setIsCreating(true);
       setError(null);
-      
+
       const result = await createMutation.mutateAsync();
       console.log(result);
-      
+
       // Call onSuccess only after mutation completes successfully
       if (onSuccess) {
         onSuccess(result);
