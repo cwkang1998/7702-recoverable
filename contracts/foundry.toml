@@ -2,6 +2,7 @@
 remappings = [
     "src:forge-std/=lib/forge-std/src",
     "src:solady/=lib/solady/src",
+    "src:self/=lib/self/contracts",
 ]
 via_ir = true
 evm_version = "prague"

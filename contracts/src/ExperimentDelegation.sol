@@ -6,17 +6,17 @@ import {ECDSA} from "./utils/ECDSA.sol";
 import {P256} from "./utils/P256.sol";
 import {WebAuthnP256} from "./utils/WebAuthnP256.sol";
 
-import {SelfVerificationRoot} from "self/contracts/contracts/abstract/SelfVerificationRoot.sol";
-import {ISelfVerificationRoot} from "self/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
-import {IVcAndDiscloseCircuitVerifier} from "self/contracts/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
-import {IIdentityVerificationHubV1} from "self/contracts/contracts/interfaces/IIdentityVerificationHubV1.sol";
-import {CircuitConstants} from "self/contracts/contracts/constants/CircuitConstants.sol";
+import {SelfVerificationRoot} from "self/contracts/abstract/SelfVerificationRoot.sol";
+import {ISelfVerificationRoot} from "self/contracts/interfaces/ISelfVerificationRoot.sol";
+import {IVcAndDiscloseCircuitVerifier} from "self/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
+import {IIdentityVerificationHubV1} from "self/contracts/interfaces/IIdentityVerificationHubV1.sol";
+import {CircuitConstants} from "self/contracts/constants/CircuitConstants.sol";
 
 /// @title ExperimentDelegation
 /// @author jxom <https://github.com/jxom>
 /// @notice Experimental EIP-7702 delegation contract that allows authorized Keys to invoke calls on behalf of an Authority.
 /// @dev WARNING: THIS CONTRACT IS AN EXPERIMENT AND HAS NOT BEEN AUDITED.
-contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownable {
+contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot {
     ////////////////////////////////////////////////////////////////////////
     // Data Structures
     ////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
     // Storage
     ////////////////////////////////////////////////////////////////////////
 
-    /// @notice Mapping from nullifier to their account addresses
+    /// @notice Mapping from nullifier to their key index
     mapping(uint256 => uint256) public nullifierToKeyIndexMapping;
 
     ////////////////////////////////////////////////////////////////////////
@@ -64,6 +64,9 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
 
     /// @notice Thrown when a signature is invalid.
     error InvalidSignature();
+
+    /// @notice Thrown when a nullier has been registered
+    error RegisteredNullifier();
 
     ////////////////////////////////////////////////////////////////////////
     // Functions
@@ -95,8 +98,12 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
             _forbiddenCountriesListPacked,
             _ofacEnabled
         )
-        Ownable(_msgSender())
-    {}
+    {
+        // this is a placeholder key so that keyIndex 0 is never used by an actual user
+        ECDSA.PublicKey memory publicKey = ECDSA.PublicKey({x: 0, y: 0});
+        Key memory key = Key({authorized: true, expiry: 0, keyType: KeyType.P256, publicKey: publicKey});
+        keys.push(key);
+    }
 
     /// @notice Authorizes a new public key on behalf of the Authority, provided the Authority's signature.
     /// @param publicKey - The public key to authorize.
@@ -156,16 +163,17 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
         multiSend(calls);
     }
 
-    function getKeyIndexesFromNullifier(uint256 nullifier) public view returns (uint256[] memory) {
-        return nullifierToKeyIndexMapping[nullifier];
-    }
-
+    // TODO: we need access control here
     function setKeyIndexForNullifier(uint256 nullifier, uint256 keyIndex) public {
         nullifierToKeyIndexMapping[nullifier] = keyIndex;
     }
 
-    /// @notice Verify a self proof and recover account if valid
+    /// @notice Verify a self proof
+    /// @notice If proof is valid, revoke specified key and authorize new key
     /// @param proof The proof of recovery
+    /// @param publicKey New public key
+    /// @param keyType New key type
+    /// @param expiry Expiry for the new key
     function manualVerifySelfProof(
         IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof,
         ECDSA.PublicKey calldata publicKey,
@@ -178,10 +186,6 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
 
         if (_attestationId != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_ATTESTATION_ID_INDEX]) {
             revert InvalidAttestationId();
-        }
-
-        if (_nullifiers[proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_NULLIFIER_INDEX]]) {
-            revert RegisteredNullifier();
         }
 
         IIdentityVerificationHubV1.VcAndDiscloseVerificationResult memory result = _identityVerificationHub
@@ -201,7 +205,7 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
         if (keyIndex == 0) revert AccountNotFound();
 
         // Revoke old key
-        keys[publicKeyIndex].authorized = false;
+        keys[keyIndex].authorized = false;
 
         // Authorize new key
         Key memory key = Key({authorized: true, expiry: expiry, keyType: keyType, publicKey: publicKey});
