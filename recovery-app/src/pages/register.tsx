@@ -3,7 +3,6 @@ import { InitializeAccount } from '../components/InitializeAccount';
 import { useState } from 'react';
 import { useSelfxyz } from '../hooks/useSelfxyz';
 import { appConfig } from '../app-config';
-import { Account } from '../modules/Account';
 import { useNavigate } from 'react-router';
 
 export default function Register() {
@@ -12,6 +11,7 @@ export default function Register() {
   const [passkeyCreated, setPasskeyCreated] = useState(false);
   const [nullifier, setNullifier] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleSelfVerificationSuccess = async () => {
     const verificationId = selfApp.userId;
@@ -23,6 +23,9 @@ export default function Register() {
       
       // Start submitting to backend
       setIsSubmitting(true);
+
+      // Navigate to homepage after successful submission
+      navigate('/');
       try {
         const submitResponse = await fetch('http://localhost:3000/submit-nullifier', {
           method: 'POST',
@@ -35,6 +38,7 @@ export default function Register() {
         if (!submitResponse.ok) {
           throw new Error('Failed to submit nullifier');
         }
+        
       } catch (error) {
         console.error('Error submitting nullifier:', error);
       } finally {
