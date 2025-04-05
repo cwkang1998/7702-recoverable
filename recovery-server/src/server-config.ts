@@ -16,4 +16,7 @@ export const serverConfig = {
   backendVerifier: {
     scope: '7702-recoverable-17135',
   },
+  recoveryVerifier: {
+    scope: '7702-recoverable-verify-17135',
+  },
 };
