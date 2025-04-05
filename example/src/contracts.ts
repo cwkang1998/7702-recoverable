@@ -1,3 +1,209 @@
+export const ExperimentDelegation = {
+  abi: [
+    {
+      type: 'function',
+      name: 'authorize',
+      inputs: [
+        {
+          name: 'publicKey',
+          type: 'tuple',
+          internalType: 'struct ECDSA.PublicKey',
+          components: [
+            { name: 'x', type: 'uint256', internalType: 'uint256' },
+            { name: 'y', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+        {
+          name: 'keyType',
+          type: 'uint8',
+          internalType: 'enum P256BatchDelegation.KeyType',
+        },
+        { name: 'expiry', type: 'uint256', internalType: 'uint256' },
+      ],
+      outputs: [
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+      ],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'authorize',
+      inputs: [
+        {
+          name: 'publicKey',
+          type: 'tuple',
+          internalType: 'struct ECDSA.PublicKey',
+          components: [
+            { name: 'x', type: 'uint256', internalType: 'uint256' },
+            { name: 'y', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+        {
+          name: 'keyType',
+          type: 'uint8',
+          internalType: 'enum P256BatchDelegation.KeyType',
+        },
+        { name: 'expiry', type: 'uint256', internalType: 'uint256' },
+        {
+          name: 'signature',
+          type: 'tuple',
+          internalType: 'struct ECDSA.RecoveredSignature',
+          components: [
+            { name: 'r', type: 'uint256', internalType: 'uint256' },
+            { name: 's', type: 'uint256', internalType: 'uint256' },
+            { name: 'yParity', type: 'uint8', internalType: 'uint8' },
+          ],
+        },
+      ],
+      outputs: [
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+      ],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'authorizeNonce',
+      inputs: [],
+      outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+      stateMutability: 'view',
+    },
+    {
+      type: 'function',
+      name: 'execute',
+      inputs: [{ name: 'calls', type: 'bytes', internalType: 'bytes' }],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'execute',
+      inputs: [
+        { name: 'calls', type: 'bytes', internalType: 'bytes' },
+        {
+          name: 'signature',
+          type: 'tuple',
+          internalType: 'struct ECDSA.Signature',
+          components: [
+            { name: 'r', type: 'uint256', internalType: 'uint256' },
+            { name: 's', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+        { name: 'prehash', type: 'bool', internalType: 'bool' },
+      ],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'execute',
+      inputs: [
+        { name: 'calls', type: 'bytes', internalType: 'bytes' },
+        {
+          name: 'signature',
+          type: 'tuple',
+          internalType: 'struct ECDSA.Signature',
+          components: [
+            { name: 'r', type: 'uint256', internalType: 'uint256' },
+            { name: 's', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+        {
+          name: 'metadata',
+          type: 'tuple',
+          internalType: 'struct WebAuthnP256.Metadata',
+          components: [
+            { name: 'authenticatorData', type: 'bytes', internalType: 'bytes' },
+            { name: 'clientDataJSON', type: 'string', internalType: 'string' },
+            { name: 'challengeIndex', type: 'uint16', internalType: 'uint16' },
+            { name: 'typeIndex', type: 'uint16', internalType: 'uint16' },
+            {
+              name: 'userVerificationRequired',
+              type: 'bool',
+              internalType: 'bool',
+            },
+          ],
+        },
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+        { name: 'prehash', type: 'bool', internalType: 'bool' },
+      ],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'executeNonce',
+      inputs: [],
+      outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+      stateMutability: 'view',
+    },
+    {
+      type: 'function',
+      name: 'keys',
+      inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+      outputs: [
+        { name: 'authorized', type: 'bool', internalType: 'bool' },
+        { name: 'expiry', type: 'uint256', internalType: 'uint256' },
+        {
+          name: 'keyType',
+          type: 'uint8',
+          internalType: 'enum P256BatchDelegation.KeyType',
+        },
+        {
+          name: 'publicKey',
+          type: 'tuple',
+          internalType: 'struct ECDSA.PublicKey',
+          components: [
+            { name: 'x', type: 'uint256', internalType: 'uint256' },
+            { name: 'y', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+      ],
+      stateMutability: 'view',
+    },
+    {
+      type: 'function',
+      name: 'multiSend',
+      inputs: [{ name: 'transactions', type: 'bytes', internalType: 'bytes' }],
+      outputs: [],
+      stateMutability: 'payable',
+    },
+    {
+      type: 'function',
+      name: 'revoke',
+      inputs: [
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+      ],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
+      name: 'revoke',
+      inputs: [
+        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+        {
+          name: 'signature',
+          type: 'tuple',
+          internalType: 'struct ECDSA.RecoveredSignature',
+          components: [
+            { name: 'r', type: 'uint256', internalType: 'uint256' },
+            { name: 's', type: 'uint256', internalType: 'uint256' },
+            { name: 'yParity', type: 'uint8', internalType: 'uint8' },
+          ],
+        },
+      ],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    { type: 'error', name: 'InvalidAuthority', inputs: [] },
+    { type: 'error', name: 'InvalidSignature', inputs: [] },
+    { type: 'error', name: 'KeyExpired', inputs: [] },
+    { type: 'error', name: 'KeyNotAuthorized', inputs: [] },
+  ],
+  address: '0x35202a6E6317F3CC3a177EeEE562D3BcDA4a6FcC',
+} as const
+
 export const ExperimentERC20 = {
   abi: [
     { type: 'fallback', stateMutability: 'payable' },
@@ -185,8 +391,5 @@ export const ExperimentERC20 = {
     { type: 'error', name: 'PermitExpired', inputs: [] },
     { type: 'error', name: 'TotalSupplyOverflow', inputs: [] },
   ],
-  address: [
-    '0x706aa5c8e5cc2c67da21ee220718f6f6b154e75c',
-    '0x390dd40042a844f92b499069cfe983236d9fe204',
-  ],
-} as const;
+  address: '0x238c8CD93ee9F8c7Edf395548eF60c0d2e46665E',
+} as const

@@ -1,12 +1,12 @@
-import { useAccount } from 'wagmi';
-import { AccountDetails } from './components/AccountDetails';
-import { InitializeAccount } from './components/InitializeAccount';
-import { Mint } from './components/Mint';
-import { Send } from './components/Send';
-import { client } from './config';
+import { AccountDetails } from './components/AccountDetails'
+import { InitializeAccount } from './components/InitializeAccount'
+import { Mint } from './components/Mint'
+import { Send } from './components/Send'
+import { client } from './config'
+import { Account } from './modules/Account'
 
 export function App() {
-  const { address } = useAccount();
+  const { data: account } = Account.useQuery()
 
   return (
     <div>
@@ -30,18 +30,18 @@ export function App() {
       </p>
       <InitializeAccount />
 
-      {address && (
+      {account && (
         <>
           <h2>2. Account</h2>
-          <AccountDetails address={address} />
+          <AccountDetails account={account} />
 
           <h2>3. Mint EXP (ERC20)</h2>
-          <Mint />
+          <Mint account={account} />
 
           <h2>4. Batch Send EXP</h2>
-          <Send />
+          <Send account={account} />
         </>
       )}
     </div>
-  );
+  )
 }

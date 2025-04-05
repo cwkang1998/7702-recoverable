@@ -1,52 +1,56 @@
-import { type BaseError, parseEther } from 'viem';
-import { useAccount } from 'wagmi';
-import { useSendCalls } from 'wagmi/experimental';
-import { client } from '../config';
-import { ExperimentERC20 } from '../contracts';
+import { type BaseError, encodeFunctionData, parseEther } from 'viem'
 
-export function Mint() {
-  const { address } = useAccount();
+import { useWaitForTransactionReceipt } from 'wagmi'
+import { client } from '../config'
+import { ExperimentERC20 } from '../contracts'
+import { Account } from '../modules/Account'
 
-  const send = useSendCalls();
+export function Mint({ account }: { account: Account.Account }) {
+  const {
+    data: hash,
+    mutate: execute,
+    error,
+    ...executeQuery
+  } = Account.useExecute({
+    client,
+  })
+
+  const receiptQuery = useWaitForTransactionReceipt({ hash })
+
+  const isPending =
+    receiptQuery.fetchStatus === 'fetching' || executeQuery.isPending
+  const isSuccess = receiptQuery.isSuccess && executeQuery.isSuccess
 
   return (
     <div>
       <p>Mint some EXP (ERC20) to your account by clicking the button below.</p>
       <button
-        disabled={send.isPending}
-        onClick={(event) => {
-          event.preventDefault();
-          send
-            .sendCallsAsync({
-              account: address!,
-              calls: [
-                {
-                  functionName: 'mint',
+        disabled={isPending || isSuccess}
+        onClick={() =>
+          execute({
+            account,
+            calls: [
+              {
+                to: ExperimentERC20.address,
+                data: encodeFunctionData({
                   abi: ExperimentERC20.abi,
-                  to: ExperimentERC20.address[0],
-                  args: [address!, parseEther('100')],
-                },
-              ],
-            })
-            .then((result) => {
-              console.log(result);
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        }}
+                  functionName: 'mint',
+                  args: [account.address, parseEther('100')],
+                }),
+              },
+            ],
+          })
+        }
         type="button"
       >
-        {send.isPending ? 'Minting...' : 'Mint 100 EXP'}
+        {isPending ? 'Minting...' : 'Mint 100 EXP'}
       </button>
-      {send.error && (
-        <p>{(send.error as BaseError).shortMessage ?? send.error.message}</p>
-      )}
-      {send.isSuccess && (
+      {error && <p>{(error as BaseError).shortMessage ?? error.message}</p>}
+      {isSuccess && (
         <p>
           Minted 100 EXP ·{' '}
           <a
-            href={`${client.chain.blockExplorers.default.url}/tx/${send.data}`}
+            href={`${client.chain.blockExplorers.default.url}/tx/${hash}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -55,5 +59,5 @@ export function Mint() {
         </p>
       )}
     </div>
-  );
+  )
 }

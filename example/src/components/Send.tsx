@@ -1,64 +1,70 @@
-import {
-  type Address,
-  encodeFunctionData,
-  formatEther,
-  parseEther,
-} from 'viem';
-import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
-import { useAccount, useReadContracts } from 'wagmi';
-import { useSendCalls } from 'wagmi/experimental';
-import { client } from '../config';
-import { ExperimentERC20 } from '../contracts';
+import { encodeFunctionData, formatEther, parseEther } from 'viem'
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts'
+import { useReadContracts, useWaitForTransactionReceipt } from 'wagmi'
 
-const alice = privateKeyToAddress(generatePrivateKey());
-const bob = privateKeyToAddress(generatePrivateKey());
+import { client } from '../config'
+import { ExperimentERC20 } from '../contracts'
+import { Account } from '../modules/Account'
 
-export function Send() {
-  const { address } = useAccount();
+const alice = privateKeyToAddress(generatePrivateKey())
+const bob = privateKeyToAddress(generatePrivateKey())
+
+export function Send({ account }: { account: Account.Account }) {
+  const balanceOf = {
+    ...ExperimentERC20,
+    functionName: 'balanceOf',
+  } as const
 
   const { data: balances } = useReadContracts({
     contracts: [
       {
-        abi: ExperimentERC20.abi,
-        address: ExperimentERC20.address[0] as Address,
-        functionName: 'balanceOf',
-        args: [address!],
+        ...balanceOf,
+        args: [account.address],
       },
       {
-        abi: ExperimentERC20.abi,
-        address: ExperimentERC20.address[0] as Address,
-        functionName: 'balanceOf',
+        ...balanceOf,
         args: [alice],
       },
       {
-        abi: ExperimentERC20.abi,
-        address: ExperimentERC20.address[0] as Address,
-        functionName: 'balanceOf',
+        ...balanceOf,
         args: [bob],
       },
     ],
     query: {
-      enabled: !!address,
-      refetchInterval: 1_000,
+      refetchInterval: 1000,
     },
-  });
+  })
 
-  const send = useSendCalls();
+  const {
+    data: hash,
+    mutateAsync: execute,
+    isPending,
+  } = Account.useExecute({
+    client,
+  })
 
-  const [selfBalance, aliceBalance, bobBalance] = balances || [];
+  const { data: receipt, ...receiptQuery } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  if (!balances) return null
+
+  const [selfBalance, aliceBalance, bobBalance] = balances
+
   return (
     <form
       onSubmit={async (e) => {
-        e.preventDefault();
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const aliceValue = formData.get('value.alice') as string;
-        const bobValue = formData.get('value.bob') as string;
+        e.preventDefault()
+        const form = e.target as HTMLFormElement
+        const formData = new FormData(form)
+        const aliceValue = formData.get('value.alice') as string
+        const bobValue = formData.get('value.bob') as string
 
-        send.sendCalls({
+        await execute({
+          account,
           calls: [
             {
-              to: ExperimentERC20.address[0],
+              to: ExperimentERC20.address,
               data: encodeFunctionData({
                 abi: ExperimentERC20.abi,
                 functionName: 'transfer',
@@ -66,7 +72,7 @@ export function Send() {
               }),
             },
             {
-              to: ExperimentERC20.address[0],
+              to: ExperimentERC20.address,
               data: encodeFunctionData({
                 abi: ExperimentERC20.abi,
                 functionName: 'transfer',
@@ -74,9 +80,9 @@ export function Send() {
               }),
             },
           ],
-        });
+        })
 
-        form.reset();
+        form.reset()
       }}
     >
       <p>Send EXP (ERC20) to other accounts by filling out the fields below.</p>
@@ -93,12 +99,12 @@ export function Send() {
         <tbody>
           <tr>
             <td>Alice</td>
-            <td align="right">{formatExp(aliceBalance?.result)} EXP</td>
+            <td align="right">{formatExp(aliceBalance.result)} EXP</td>
             <td align="right">
               <input
-                disabled={selfBalance?.result === 0n || send.isPending}
+                disabled={selfBalance.result === 0n || isPending}
                 required
-                max={formatExp(selfBalance?.result)}
+                max={formatExp(selfBalance.result)}
                 step="0.000001"
                 type="number"
                 name="value.alice"
@@ -108,12 +114,12 @@ export function Send() {
           </tr>
           <tr>
             <td>Bob</td>
-            <td align="right">{formatExp(bobBalance?.result)} EXP</td>
+            <td align="right">{formatExp(bobBalance.result)} EXP</td>
             <td align="right">
               <input
-                disabled={selfBalance?.result === 0n || send.isPending}
+                disabled={selfBalance.result === 0n || isPending}
                 required
-                max={formatExp(selfBalance?.result)}
+                max={formatExp(selfBalance.result)}
                 step="0.000001"
                 type="number"
                 name="value.bob"
@@ -123,10 +129,10 @@ export function Send() {
           </tr>
           <tr>
             <td>Self</td>
-            <td align="right">{formatExp(selfBalance?.result)} EXP</td>
+            <td align="right">{formatExp(selfBalance.result)} EXP</td>
             <td align="right">
               <button
-                disabled={selfBalance?.result === 0n || send.isPending}
+                disabled={selfBalance.result === 0n || isPending}
                 type="submit"
               >
                 Send
@@ -135,12 +141,12 @@ export function Send() {
           </tr>
         </tbody>
       </table>
-      {send.status === 'pending' && <p>Waiting for receipt...</p>}
-      {send.isSuccess && (
+      {receiptQuery.fetchStatus === 'fetching' && <p>Waiting for receipt...</p>}
+      {receiptQuery.isSuccess && (
         <p>
           Transaction successful!{' '}
           <a
-            href={`${client.chain.blockExplorers.default.url}/tx/${send.data}`}
+            href={`${client.chain.blockExplorers.default.url}/tx/${hash}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -149,14 +155,14 @@ export function Send() {
         </p>
       )}
     </form>
-  );
+  )
 }
 
 const numberIntl = new Intl.NumberFormat('en-US', {
   maximumSignificantDigits: 6,
-});
+})
 
 export function formatExp(wei: bigint | undefined) {
-  if (!wei) return '0';
-  return numberIntl.format(Number(formatEther(wei)));
+  if (!wei) return '0'
+  return numberIntl.format(Number(formatEther(wei)))
 }

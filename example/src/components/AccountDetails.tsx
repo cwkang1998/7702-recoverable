@@ -1,25 +1,26 @@
-import { type Address, formatEther } from 'viem';
-import { useReadContract } from 'wagmi';
-import { client } from '../config';
-import { ExperimentERC20 } from '../contracts';
+import { formatEther } from 'viem'
+import { useReadContract } from 'wagmi'
 
-export function AccountDetails({ address }: { address: Address }) {
+import { client } from '../config'
+import { ExperimentERC20 } from '../contracts'
+import type { Account } from '../modules/Account'
+
+export function AccountDetails({ account }: { account: Account.Account }) {
   const { data: expBalance } = useReadContract({
-    abi: ExperimentERC20.abi,
-    address: ExperimentERC20.address[0],
+    ...ExperimentERC20,
     functionName: 'balanceOf',
-    args: [address],
+    args: [account.address],
     query: {
       refetchInterval: 1000,
     },
-  });
+  })
 
   return (
     <div>
       <div>
-        <strong>Address:</strong> <code>{address}</code> {' · '}
+        <strong>Address:</strong> <code>{account.address}</code> {' · '}
         <a
-          href={`${client.chain.blockExplorers.default.url}/address/${address}`}
+          href={`${client.chain.blockExplorers.default.url}/address/${account.address}`}
           target="_blank"
           rel="noreferrer"
         >
@@ -33,13 +34,13 @@ export function AccountDetails({ address }: { address: Address }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 const numberIntl = new Intl.NumberFormat('en-US', {
   maximumSignificantDigits: 6,
-});
+})
 
 export function formatEth(wei: bigint) {
-  return numberIntl.format(Number(formatEther(wei)));
+  return numberIntl.format(Number(formatEther(wei)))
 }

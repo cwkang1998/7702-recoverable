@@ -1,42 +1,38 @@
-import { Hooks } from 'porto/wagmi';
-import type { BaseError } from 'viem';
-import { useAccount, useConnectors } from 'wagmi';
-import { client } from '../config';
+import type { BaseError } from 'viem'
+
+import { client } from '../config'
+import { Account } from '../modules/Account'
 
 export function InitializeAccount() {
-  const label = `exp-000q-${Math.floor(Date.now() / 1000)}`;
+  const { data: hash, ...createMutation } = Account.useCreate({
+    client,
+  })
+  const loadMutation = Account.useLoad({ client })
 
-  const { address } = useAccount();
-  const connect = Hooks.useConnect();
-  const connectors = useConnectors();
-  const connector = connectors.find((x) => x.id === 'xyz.ithaca.porto')!;
+  const isPending = createMutation.isPending || loadMutation.isPending
+  const error = createMutation.error || loadMutation.error
 
   return (
     <div>
       <button
-        disabled={connect.isPending}
-        onClick={() =>
-          connect.mutate({
-            connector,
-            createAccount: { label },
-          })
-        }
+        disabled={isPending}
+        onClick={() => createMutation.mutate()}
         type="button"
       >
-        Register
+        Create Passkey
       </button>
       <button
-        disabled={connect.isPending}
-        onClick={() => connect.mutate({ connector })}
+        disabled={isPending}
+        onClick={() => loadMutation.mutate()}
         type="button"
       >
-        Sign In
+        Import Passkey
       </button>
-      {address && (
+      {hash && (
         <p>
           Account created!{' '}
           <a
-            href={`${client.chain.blockExplorers.default.url}/address/${address}`}
+            href={`${client.chain.blockExplorers.default.url}/tx/${hash}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -44,11 +40,7 @@ export function InitializeAccount() {
           </a>
         </p>
       )}
-      {connect.error && (
-        <p>
-          {(connect.error as BaseError).shortMessage ?? connect.error.message}
-        </p>
-      )}
+      {error && <p>{(error as BaseError).shortMessage ?? error.message}</p>}
     </div>
-  );
+  )
 }
