@@ -3,7 +3,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "serve:prod": "tsx src/prod.ts"
+    "serve:prod": "tsx src/prod.ts",
+    "generate": "drizzle-kit generate:sqlite",
+    "push": "drizzle-kit push:sqlite"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
@@ -13,10 +15,14 @@
     "dotenv": "^16.4.7",
     "hono": "^4.7.5",
     "viem": "^2.25.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "better-sqlite3": "11.9.1",
+    "drizzle-orm": "0.41.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.1",
+    "@types/better-sqlite3": "^7.6.9",
+    "drizzle-kit": "0.30.6"
   }
 }
