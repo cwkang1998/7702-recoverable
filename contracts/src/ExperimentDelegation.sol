@@ -6,11 +6,17 @@ import {ECDSA} from "./utils/ECDSA.sol";
 import {P256} from "./utils/P256.sol";
 import {WebAuthnP256} from "./utils/WebAuthnP256.sol";
 
+import {SelfVerificationRoot} from "self/contracts/contracts/abstract/SelfVerificationRoot.sol";
+import {ISelfVerificationRoot} from "self/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
+import {IVcAndDiscloseCircuitVerifier} from "self/contracts/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
+import {IIdentityVerificationHubV1} from "self/contracts/contracts/interfaces/IIdentityVerificationHubV1.sol";
+import {CircuitConstants} from "self/contracts/contracts/constants/CircuitConstants.sol";
+
 /// @title ExperimentDelegation
 /// @author jxom <https://github.com/jxom>
 /// @notice Experimental EIP-7702 delegation contract that allows authorized Keys to invoke calls on behalf of an Authority.
 /// @dev WARNING: THIS CONTRACT IS AN EXPERIMENT AND HAS NOT BEEN AUDITED.
-contract ExperimentDelegation is MultiSendCallOnly {
+contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownable {
     ////////////////////////////////////////////////////////////////////////
     // Data Structures
     ////////////////////////////////////////////////////////////////////////
@@ -34,8 +40,18 @@ contract ExperimentDelegation is MultiSendCallOnly {
     }
 
     ////////////////////////////////////////////////////////////////////////
+    // Storage
+    ////////////////////////////////////////////////////////////////////////
+
+    /// @notice Mapping from nullifier to their account addresses
+    mapping(uint256 => address[]) public nullifierToAccountsMapping;
+
+    ////////////////////////////////////////////////////////////////////////
     // Errors
     ////////////////////////////////////////////////////////////////////////
+
+    /// @notice Thrown when an address is not found for a nullifier
+    error AccountNotFound();
 
     /// @notice Thrown when a key is expired.
     error KeyExpired();
@@ -58,6 +74,29 @@ contract ExperimentDelegation is MultiSendCallOnly {
 
     /// @notice Internal nonce used for replay protection.
     uint256 public nonce;
+
+    constructor(
+        address _identityVerificationHub,
+        uint256 _scope,
+        uint256 _attestationId,
+        bool _olderThanEnabled,
+        uint256 _olderThan,
+        bool _forbiddenCountriesEnabled,
+        uint256[4] memory _forbiddenCountriesListPacked,
+        bool[3] memory _ofacEnabled
+    )
+        SelfVerificationRoot(
+            _identityVerificationHub,
+            _scope,
+            _attestationId,
+            _olderThanEnabled,
+            _olderThan,
+            _forbiddenCountriesEnabled,
+            _forbiddenCountriesListPacked,
+            _ofacEnabled
+        )
+        Ownable(_msgSender())
+    {}
 
     /// @notice Authorizes a new public key on behalf of the Authority, provided the Authority's signature.
     /// @param publicKey - The public key to authorize.
@@ -115,6 +154,64 @@ contract ExperimentDelegation is MultiSendCallOnly {
         }
 
         multiSend(calls);
+    }
+
+    function getAddressesFromNullifier(uint256 nullifier) public view returns (address[] memory) {
+        return nullifierToAccountsMapping[nullifier];
+    }
+
+        /// @notice Verify a self proof and recover account if valid
+    /// @param proof The proof of recovery
+    function manualVerifySelfProof(
+        IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof, ECDSA.PublicKey calldata publicKey,
+        KeyType keyType) public override {
+        if (_scope != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_SCOPE_INDEX]) {
+            revert InvalidScope();
+        }
+
+        if (_attestationId != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_ATTESTATION_ID_INDEX]) {
+            revert InvalidAttestationId();
+        }
+
+        if (_nullifiers[proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_NULLIFIER_INDEX]]) {
+            revert RegisteredNullifier();
+        }
+
+        IIdentityVerificationHubV1.VcAndDiscloseVerificationResult memory result = _identityVerificationHub
+            .verifyVcAndDisclose(
+            IIdentityVerificationHubV1.VcAndDiscloseHubProof({
+                olderThanEnabled: _verificationConfig.olderThanEnabled,
+                olderThan: _verificationConfig.olderThan,
+                forbiddenCountriesEnabled: _verificationConfig.forbiddenCountriesEnabled,
+                forbiddenCountriesListPacked: _verificationConfig.forbiddenCountriesListPacked,
+                ofacEnabled: _verificationConfig.ofacEnabled,
+                vcAndDiscloseProof: proof
+            })
+        );
+
+        // Get the old account address from the user identifier
+        address oldAccount = address(uint160(result.userIdentifier));
+
+        // Check if the old account has a recovery key set
+        if (accountRecoveryKeys[oldAccount].length == 0) {
+            revert KeyNotAuthorized();
+        }
+
+        // Get the new account address from the revealed data
+        address accountAddress = nullifierToAccountMapping[result.nullifier];
+        if (accountAddress == address(0)) {
+            revert AccountNotFound();
+        }
+
+        ExperimentDelegation(accountAddress).set()
+
+        // address newAccount = address(uint160(result.revealedDataPacked[0]));
+
+        // Transfer the recovery key to the new account
+        // accountRecoveryKeys[newAccount] = accountRecoveryKeys[oldAccount];
+        // delete accountRecoveryKeys[oldAccount];
+
+        // emit AccountRecovered(oldAccount, newAccount);
     }
 
     fallback() external payable {}
