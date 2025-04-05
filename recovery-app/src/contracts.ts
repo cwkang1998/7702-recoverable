@@ -1,5 +1,7 @@
 export const ExperimentDelegation = {
   abi: [
+    { type: 'fallback', stateMutability: 'payable' },
+    { type: 'receive', stateMutability: 'payable' },
     {
       type: 'function',
       name: 'authorize',
@@ -16,7 +18,7 @@ export const ExperimentDelegation = {
         {
           name: 'keyType',
           type: 'uint8',
-          internalType: 'enum P256BatchDelegation.KeyType',
+          internalType: 'enum ExperimentDelegation.KeyType',
         },
         { name: 'expiry', type: 'uint256', internalType: 'uint256' },
         {
@@ -54,9 +56,21 @@ export const ExperimentDelegation = {
           type: 'tuple',
           internalType: 'struct WebAuthnP256.Metadata',
           components: [
-            { name: 'authenticatorData', type: 'bytes', internalType: 'bytes' },
-            { name: 'clientDataJSON', type: 'string', internalType: 'string' },
-            { name: 'challengeIndex', type: 'uint16', internalType: 'uint16' },
+            {
+              name: 'authenticatorData',
+              type: 'bytes',
+              internalType: 'bytes',
+            },
+            {
+              name: 'clientDataJSON',
+              type: 'string',
+              internalType: 'string',
+            },
+            {
+              name: 'challengeIndex',
+              type: 'uint16',
+              internalType: 'uint16',
+            },
             { name: 'typeIndex', type: 'uint16', internalType: 'uint16' },
             {
               name: 'userVerificationRequired',
@@ -65,7 +79,11 @@ export const ExperimentDelegation = {
             },
           ],
         },
-        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+        {
+          name: 'publicKeyIndex',
+          type: 'uint32',
+          internalType: 'uint32',
+        },
         { name: 'prehash', type: 'bool', internalType: 'bool' },
       ],
       outputs: [],
@@ -73,9 +91,9 @@ export const ExperimentDelegation = {
     },
     {
       type: 'function',
-      name: 'nonce',
+      name: 'getLatestKeyIndex',
       inputs: [],
-      outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+      outputs: [{ name: 'keyIndex', type: 'uint256', internalType: 'uint256' }],
       stateMutability: 'view',
     },
     {
@@ -88,7 +106,7 @@ export const ExperimentDelegation = {
         {
           name: 'keyType',
           type: 'uint8',
-          internalType: 'enum P256BatchDelegation.KeyType',
+          internalType: 'enum ExperimentDelegation.KeyType',
         },
         {
           name: 'publicKey',
@@ -111,9 +129,44 @@ export const ExperimentDelegation = {
     },
     {
       type: 'function',
+      name: 'nonce',
+      inputs: [],
+      outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+      stateMutability: 'view',
+    },
+    {
+      type: 'function',
+      name: 'recoverAccount',
+      inputs: [
+        {
+          name: 'publicKey',
+          type: 'tuple',
+          internalType: 'struct ECDSA.PublicKey',
+          components: [
+            { name: 'x', type: 'uint256', internalType: 'uint256' },
+            { name: 'y', type: 'uint256', internalType: 'uint256' },
+          ],
+        },
+        {
+          name: 'keyType',
+          type: 'uint8',
+          internalType: 'enum ExperimentDelegation.KeyType',
+        },
+        { name: 'expiry', type: 'uint256', internalType: 'uint256' },
+        { name: 'keyIndex', type: 'uint256', internalType: 'uint256' },
+      ],
+      outputs: [],
+      stateMutability: 'nonpayable',
+    },
+    {
+      type: 'function',
       name: 'revoke',
       inputs: [
-        { name: 'publicKeyIndex', type: 'uint32', internalType: 'uint32' },
+        {
+          name: 'publicKeyIndex',
+          type: 'uint32',
+          internalType: 'uint32',
+        },
         {
           name: 'signature',
           type: 'tuple',
@@ -128,6 +181,7 @@ export const ExperimentDelegation = {
       outputs: [],
       stateMutability: 'nonpayable',
     },
+    { type: 'error', name: 'AccountNotFound', inputs: [] },
     { type: 'error', name: 'InvalidAuthority', inputs: [] },
     { type: 'error', name: 'InvalidSignature', inputs: [] },
     { type: 'error', name: 'KeyExpired', inputs: [] },
