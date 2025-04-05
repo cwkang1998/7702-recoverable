@@ -1,4 +1,5 @@
 import { useMutation, useQuery as useQuery_ } from '@tanstack/react-query';
+import { type PublicKey, WebAuthnP256 } from 'ox';
 import {
   type Address,
   type Hex,
@@ -19,15 +20,10 @@ import {
   writeContract,
 } from 'viem/actions';
 import { signAuthorization } from 'viem/experimental';
-import {
-  type PublicKey,
-  createCredential,
-  parsePublicKey,
-  sign,
-} from 'webauthn-p256';
 
 import { type Client, queryClient } from '../config';
 import { ExperimentDelegation } from '../contracts';
+const { createCredential, sign } = WebAuthnP256;
 
 export namespace Account {
   /////////////////////////////////////////////////////////
@@ -70,7 +66,7 @@ export namespace Account {
       },
     });
 
-    const publicKey = parsePublicKey(credential.publicKey);
+    const publicKey = credential.publicKey;
     console.log('Public key:', publicKey);
 
     // Authorize the WebAuthn key on the EOA.
