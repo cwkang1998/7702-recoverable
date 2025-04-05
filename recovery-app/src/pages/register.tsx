@@ -1,47 +1,27 @@
 import { SelfQRcode } from '@selfxyz/qrcode';
-import { useAccount } from 'wagmi';
 import { InitializeAccount } from '../components/InitializeAccount';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSelfxyz } from '../hooks/useSelfxyz';
-import { v4 as uuidv4 } from 'uuid';
+import { appConfig } from '../app-config';
 
 export default function Register() {
-  const { address } = useAccount();
   const { selfApp } = useSelfxyz();
   const [passkeyCreated, setPasskeyCreated] = useState(false);
-  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [nullifier, setNullifier] = useState<string | null>(null);
 
-  const handleSuccess = async () => {
-            // Log the userId from selfApp
-        console.log('UserId:', selfApp.userId);
-        // Generate a unique ID for this verification
-        const id = uuidv4();
-        setVerificationId(id);
+  const handleSelfVerificationSuccess = async () => {
+        const verificationId = selfApp.userId;
+        const response = await fetch(`${appConfig.endpoint}-result/${verificationId}`);
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Stored verification result:', result);
+          setNullifier(result.nullifier);
+        }
   };
 
   const handlePasskeyCreated = () => {
     setPasskeyCreated(true);
   };
-
-  // Poll for verification result
-  useEffect(() => {
-    if (!verificationId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/verify-result/${verificationId}`);
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Stored verification result:', result);
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error('Error fetching verification result:', error);
-      }
-    }, 1000); // Poll every second
-
-    return () => clearInterval(interval);
-  }, [verificationId]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
@@ -63,7 +43,7 @@ export default function Register() {
           <>
             <SelfQRcode
               selfApp={selfApp}
-              onSuccess={handleSuccess}
+              onSuccess={handleSelfVerificationSuccess}
               className="w-full"
             />
           </>
