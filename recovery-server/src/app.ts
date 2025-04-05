@@ -1,12 +1,24 @@
 import { SelfBackendVerifier, getUserIdentifier } from '@selfxyz/core';
+import type { SelfVerificationResult } from '@selfxyz/core/dist/common/src/utils/selfAttestation.js';
 import { Hono } from 'hono';
 import { serverConfig } from './server-config.js';
+
+const verificationResults = new Map<string, SelfVerificationResult>();
 
 export const createApp = (endpoint_url: string) => {
   const app = new Hono();
 
   app.get('/', (c) => {
     return c.text('Hello Hono!');
+  });
+
+  app.get('/verify-result/:id', async (c) => {
+    const id = c.req.param('id');
+    const result = verificationResults.get(id);
+    if (!result) {
+      return c.json({ error: 'Result not found' }, 404);
+    }
+    return c.json(result);
   });
 
   app.post('/verify', async (c) => {
@@ -46,11 +58,11 @@ export const createApp = (endpoint_url: string) => {
 
       if (result.isValid) {
         // Return successful verification response
+        verificationResults.set(userId, result);
         return c.json({
           status: 'success',
           result: true,
           credentialSubject: result.credentialSubject,
-          nullifier: result.nullifier,
         });
       }
 
