@@ -121,19 +121,12 @@ export namespace Account {
     // the contract.
     const signature = parseSignature(await account.sign({ hash: digest }));
 
-    const transactionCount = await client.getTransactionCount({  
-      address: '0x323Ce5676F8EbA6DfCcbEa5F56D932B44876aF39',
-    })
-    console.log("Transaction count: ", transactionCount);
-
     // Sign an EIP-7702 authorization to inject the ExperimentDelegation contract
     // onto the EOA.
     console.log("signing authorization: ", account);
     const authorization = await signAuthorization(client, {
       account,
       contractAddress: ExperimentDelegation.address,
-      // chainId: 11155111,
-      // nonce: 0,
       delegate: true,
     });
     console.log("signed authorization");
@@ -157,7 +150,6 @@ export namespace Account {
         },
       ],
       authorizationList: [authorization],
-      account: client.account.address
     });
     console.log("sent authorize transaction");
 
@@ -247,13 +239,14 @@ export namespace Account {
     const s = BigInt(slice(signature, 32, 64));
 
     // Execute calls.
-    return await writeContract(client, {
+    const hash = await writeContract(client, {
       abi: ExperimentDelegation.abi,
       address: account.address,
       functionName: 'execute',
       args: [calls_encoded, { r, s }, webauthn, 0, false],
-      account: client.account.address
     });
+    console.log("sent execute transaction");
+    return hash;
   }
 
   /////////////////////////////////////////////////////////
