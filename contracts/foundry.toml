@@ -1,0 +1,11 @@
+[profile.default]
+remappings = [
+    "src:forge-std/=lib/forge-std/src",
+    "src:solady/=lib/solady/src",
+]
+via_ir = true
+evm_version = "prague"
+
+[rpc_endpoints]
+localhost = "http://localhost:8545"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${RPC_API_KEY}"
