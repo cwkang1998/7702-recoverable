@@ -244,10 +244,6 @@ export namespace Account {
       address: account.address,
       functionName: 'execute',
       args: [calls_encoded, { r, s }, webauthn, 0, false],
-<<<<<<< HEAD
-=======
-      account: client.account.address,
->>>>>>> 34d1939 (chore: add wallet client for server)
     });
     console.log("sent execute transaction");
     return hash;
