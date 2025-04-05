@@ -123,6 +123,7 @@ export namespace Account {
 
     // Sign an EIP-7702 authorization to inject the ExperimentDelegation contract
     // onto the EOA.
+    console.log("signing authorization");
     const authorization = await signAuthorization(client, {
       account,
       contractAddress: ExperimentDelegation.address,
@@ -149,7 +150,7 @@ export namespace Account {
         },
       ],
       authorizationList: [authorization],
-      account: null, // defer to sequencer to fill
+      account: client.account.address
     });
 
     return hash;
@@ -243,7 +244,7 @@ export namespace Account {
       address: account.address,
       functionName: 'execute',
       args: [calls_encoded, { r, s }, webauthn, 0, false],
-      account: null, // defer to sequencer to fill
+      account: client.account.address
     });
   }
 
