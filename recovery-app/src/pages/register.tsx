@@ -2,9 +2,12 @@ import { SelfQRcode } from '@selfxyz/qrcode';
 import { useAccount } from 'wagmi';
 import { InitializeAccount } from '../components/InitializeAccount';
 import { useState } from 'react';
+import { useSelfxyz } from '../hooks/useSelfxyz';
+
 
 export default function Register() {
   const { address } = useAccount();
+  const { selfApp } = useSelfxyz();
   const [passkeyCreated, setPasskeyCreated] = useState(false);
 
   const handleSuccess = async (result: any) => {
@@ -39,6 +42,7 @@ export default function Register() {
           <>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
               <SelfQRcode
+                selfApp={selfApp}
                 onSuccess={handleSuccess}
                 address={address}
                 className="w-full"
