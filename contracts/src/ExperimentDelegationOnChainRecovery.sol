@@ -6,11 +6,17 @@ import {ECDSA} from "./utils/ECDSA.sol";
 import {P256} from "./utils/P256.sol";
 import {WebAuthnP256} from "./utils/WebAuthnP256.sol";
 
+import {SelfVerificationRoot} from "self/contracts/abstract/SelfVerificationRoot.sol";
+import {ISelfVerificationRoot} from "self/contracts/interfaces/ISelfVerificationRoot.sol";
+import {IVcAndDiscloseCircuitVerifier} from "self/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
+import {IIdentityVerificationHubV1} from "self/contracts/interfaces/IIdentityVerificationHubV1.sol";
+import {CircuitConstants} from "self/contracts/constants/CircuitConstants.sol";
+
 /// @title ExperimentDelegation
 /// @author jxom <https://github.com/jxom>
 /// @notice Experimental EIP-7702 delegation contract that allows authorized Keys to invoke calls on behalf of an Authority.
 /// @dev WARNING: THIS CONTRACT IS AN EXPERIMENT AND HAS NOT BEEN AUDITED.
-contract ExperimentDelegation is MultiSendCallOnly {
+contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot {
     ////////////////////////////////////////////////////////////////////////
     // Data Structures
     ////////////////////////////////////////////////////////////////////////
@@ -34,6 +40,13 @@ contract ExperimentDelegation is MultiSendCallOnly {
     }
 
     ////////////////////////////////////////////////////////////////////////
+    // Storage
+    ////////////////////////////////////////////////////////////////////////
+
+    /// @notice Mapping from nullifier to their key index
+    mapping(uint256 => uint256) public nullifierToKeyIndexMapping;
+
+    ////////////////////////////////////////////////////////////////////////
     // Errors
     ////////////////////////////////////////////////////////////////////////
 
@@ -52,6 +65,9 @@ contract ExperimentDelegation is MultiSendCallOnly {
     /// @notice Thrown when a signature is invalid.
     error InvalidSignature();
 
+    /// @notice Thrown when a nullier has been registered
+    error RegisteredNullifier();
+
     ////////////////////////////////////////////////////////////////////////
     // Functions
     ////////////////////////////////////////////////////////////////////////
@@ -61,6 +77,33 @@ contract ExperimentDelegation is MultiSendCallOnly {
 
     /// @notice Internal nonce used for replay protection.
     uint256 public nonce;
+
+    constructor(
+        address _identityVerificationHub,
+        uint256 _scope,
+        uint256 _attestationId,
+        bool _olderThanEnabled,
+        uint256 _olderThan,
+        bool _forbiddenCountriesEnabled,
+        uint256[4] memory _forbiddenCountriesListPacked,
+        bool[3] memory _ofacEnabled
+    )
+        SelfVerificationRoot(
+            _identityVerificationHub,
+            _scope,
+            _attestationId,
+            _olderThanEnabled,
+            _olderThan,
+            _forbiddenCountriesEnabled,
+            _forbiddenCountriesListPacked,
+            _ofacEnabled
+        )
+    {
+        // this is a placeholder key so that keyIndex 0 is never used by an actual user
+        ECDSA.PublicKey memory publicKey = ECDSA.PublicKey({x: 0, y: 0});
+        Key memory key = Key({authorized: true, expiry: 0, keyType: KeyType.P256, publicKey: publicKey});
+        keys.push(key);
+    }
 
     /// @notice Authorizes a new public key on behalf of the Authority, provided the Authority's signature.
     /// @param publicKey - The public key to authorize.
@@ -120,15 +163,46 @@ contract ExperimentDelegation is MultiSendCallOnly {
         multiSend(calls);
     }
 
+    // TODO: we need access control here
+    function setKeyIndexForNullifier(uint256 nullifier, uint256 keyIndex) public {
+        nullifierToKeyIndexMapping[nullifier] = keyIndex;
+    }
+
     /// @notice Verify a self proof
     /// @notice If proof is valid, revoke specified key and authorize new key
+    /// @param proof The proof of recovery
     /// @param publicKey New public key
     /// @param keyType New key type
     /// @param expiry Expiry for the new key
-    function recoverAccount(ECDSA.PublicKey calldata publicKey, KeyType keyType, uint256 expiry, uint256 keyIndex)
-        public
-    {
-        // TODO: we need access control here
+    function manualVerifySelfProof(
+        IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof,
+        ECDSA.PublicKey calldata publicKey,
+        KeyType keyType,
+        uint256 expiry
+    ) public {
+        if (_scope != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_SCOPE_INDEX]) {
+            revert InvalidScope();
+        }
+
+        if (_attestationId != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_ATTESTATION_ID_INDEX]) {
+            revert InvalidAttestationId();
+        }
+
+        IIdentityVerificationHubV1.VcAndDiscloseVerificationResult memory result = _identityVerificationHub
+            .verifyVcAndDisclose(
+            IIdentityVerificationHubV1.VcAndDiscloseHubProof({
+                olderThanEnabled: _verificationConfig.olderThanEnabled,
+                olderThan: _verificationConfig.olderThan,
+                forbiddenCountriesEnabled: _verificationConfig.forbiddenCountriesEnabled,
+                forbiddenCountriesListPacked: _verificationConfig.forbiddenCountriesListPacked,
+                ofacEnabled: _verificationConfig.ofacEnabled,
+                vcAndDiscloseProof: proof
+            })
+        );
+
+        // Logic to recover the account.
+        uint256 keyIndex = nullifierToKeyIndexMapping[result.nullifier];
+        if (keyIndex == 0) revert AccountNotFound();
 
         // Revoke old key
         keys[keyIndex].authorized = false;
@@ -136,6 +210,9 @@ contract ExperimentDelegation is MultiSendCallOnly {
         // Authorize new key
         Key memory key = Key({authorized: true, expiry: expiry, keyType: keyType, publicKey: publicKey});
         keys.push(key);
+
+        // Set nullifier to new key index
+        nullifierToKeyIndexMapping[result.nullifier] = keyIndex;
     }
 
     fallback() external payable {}
