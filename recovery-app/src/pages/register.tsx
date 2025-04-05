@@ -1,72 +1,57 @@
-import { useNavigate } from 'react-router';
 import { SelfQRcode } from '@selfxyz/qrcode';
-import { useSelfxyz } from '../hooks/useSelfxyz';
+import { useAccount } from 'wagmi';
+import { InitializeAccount } from '../components/InitializeAccount';
+import { useState } from 'react';
 
 export default function Register() {
-  const navigate = useNavigate();
-  const { selfApp } = useSelfxyz();
+  const { address } = useAccount();
+  const [passkeyCreated, setPasskeyCreated] = useState(false);
 
-  // Log selfApp to check its state
-  console.log('selfApp:', selfApp);
-
-  const handleSuccess = async () => {
-    console.log('Verification successful');
-    try {
-      const response = await fetch('http://localhost:3000/verify', {
-        method: 'GET',
-      });
-
-      const data = await response.json();
-      if (data.status === 'success' && data.credentialSubject) {
-        console.log('Nullifier:', data.credentialSubject.nullifier);
-      } else {
-        console.error('Verification failed:', data.message);
-      }
-    } catch (error) {
-      console.error('Error fetching verification result:', error);
+  const handleSuccess = async (result: any) => {
+    console.log('Verification result:', result);
+    if (result.credentialSubject) {
+      console.log('Credential subject:', result.credentialSubject);
+      // Here you can handle the verification result, e.g., store it or make API calls
     }
   };
 
-  // Only render SelfQRcode if selfApp is properly initialized
-  if (!selfApp) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Loading...
-          </h1>
-        </div>
-      </div>
-    );
-  }
+  const handlePasskeyCreated = () => {
+    setPasskeyCreated(true);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Register Proof with Self.xyz
+            Register Your Proof
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Scan the QR code below with the Self.xyz app to register your proof.
+            {passkeyCreated
+              ? 'Scan the QR code with your Self.xyz app to register your proof.'
+              : 'First, create a passkey to secure your account.'}
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg flex flex-col items-center">
-          <SelfQRcode
-            selfApp={selfApp}
-            onSuccess={handleSuccess}
-          />
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-            {/* Place your captions here. */}
-          </p>
-        </div>
+        {!passkeyCreated ? (
+          <InitializeAccount onSuccess={handlePasskeyCreated} />
+        ) : (
+          <>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+              <SelfQRcode
+                onSuccess={handleSuccess}
+                address={address}
+                className="w-full"
+              />
+            </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Having trouble? Contact support at support@example.com
-          </p>
-        </div>
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              <p>
+                After scanning, your proof will be registered and linked to your account.
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
