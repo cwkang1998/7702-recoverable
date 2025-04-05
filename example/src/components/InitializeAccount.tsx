@@ -1,15 +1,15 @@
-import { Hooks } from 'porto/wagmi'
-import type { BaseError } from 'viem'
-import { useAccount, useConnectors } from 'wagmi'
-import { client } from '../config'
+import { Hooks } from 'porto/wagmi';
+import type { BaseError } from 'viem';
+import { useAccount, useConnectors } from 'wagmi';
+import { client } from '../config';
 
 export function InitializeAccount() {
-  const label = `exp-000q-${Math.floor(Date.now() / 1000)}`
+  const label = `exp-000q-${Math.floor(Date.now() / 1000)}`;
 
-  const { address } = useAccount()
-  const connect = Hooks.useConnect()
-  const connectors = useConnectors()
-  const connector = connectors.find((x) => x.id === 'xyz.ithaca.porto')!
+  const { address } = useAccount();
+  const connect = Hooks.useConnect();
+  const connectors = useConnectors();
+  const connector = connectors.find((x) => x.id === 'xyz.ithaca.porto')!;
 
   return (
     <div>
@@ -50,5 +50,5 @@ export function InitializeAccount() {
         </p>
       )}
     </div>
-  )
+  );
 }

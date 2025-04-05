@@ -1,15 +1,20 @@
-import { type Address, encodeFunctionData, formatEther, parseEther } from 'viem'
-import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts'
-import { useAccount, useReadContracts } from 'wagmi'
-import { useSendCalls } from 'wagmi/experimental'
-import { client } from '../config'
-import { ExperimentERC20 } from '../contracts'
+import {
+  type Address,
+  encodeFunctionData,
+  formatEther,
+  parseEther,
+} from 'viem';
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
+import { useAccount, useReadContracts } from 'wagmi';
+import { useSendCalls } from 'wagmi/experimental';
+import { client } from '../config';
+import { ExperimentERC20 } from '../contracts';
 
-const alice = privateKeyToAddress(generatePrivateKey())
-const bob = privateKeyToAddress(generatePrivateKey())
+const alice = privateKeyToAddress(generatePrivateKey());
+const bob = privateKeyToAddress(generatePrivateKey());
 
 export function Send() {
-  const { address } = useAccount()
+  const { address } = useAccount();
 
   const { data: balances } = useReadContracts({
     contracts: [
@@ -36,19 +41,19 @@ export function Send() {
       enabled: !!address,
       refetchInterval: 1_000,
     },
-  })
+  });
 
-  const send = useSendCalls()
+  const send = useSendCalls();
 
-  const [selfBalance, aliceBalance, bobBalance] = balances || []
+  const [selfBalance, aliceBalance, bobBalance] = balances || [];
   return (
     <form
       onSubmit={async (e) => {
-        e.preventDefault()
-        const form = e.target as HTMLFormElement
-        const formData = new FormData(form)
-        const aliceValue = formData.get('value.alice') as string
-        const bobValue = formData.get('value.bob') as string
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const aliceValue = formData.get('value.alice') as string;
+        const bobValue = formData.get('value.bob') as string;
 
         send.sendCalls({
           calls: [
@@ -69,9 +74,9 @@ export function Send() {
               }),
             },
           ],
-        })
+        });
 
-        form.reset()
+        form.reset();
       }}
     >
       <p>Send EXP (ERC20) to other accounts by filling out the fields below.</p>
@@ -144,14 +149,14 @@ export function Send() {
         </p>
       )}
     </form>
-  )
+  );
 }
 
 const numberIntl = new Intl.NumberFormat('en-US', {
   maximumSignificantDigits: 6,
-})
+});
 
 export function formatExp(wei: bigint | undefined) {
-  if (!wei) return '0'
-  return numberIntl.format(Number(formatEther(wei)))
+  if (!wei) return '0';
+  return numberIntl.format(Number(formatEther(wei)));
 }

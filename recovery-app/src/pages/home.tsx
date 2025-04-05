@@ -1,23 +1,22 @@
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router';
 
 export default function Home() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Account Recovery System
+            7702 Recoverable Account
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            A secure and user-friendly system for creating and recovering your
-            accounts. Our platform ensures your digital assets are always
-            accessible while maintaining the highest security standards.
+            Create a recoverable account with 7702 that gives your EOAs
+            superpower.
           </p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-row gap-4">
           <button
             type="button"
             onClick={() => navigate('/create')}
@@ -53,5 +52,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
+  );
 }

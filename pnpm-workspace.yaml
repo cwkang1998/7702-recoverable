@@ -1,4 +1,11 @@
 packages:
-  - "recovery-app"
-  - "recovery-server"
-  - "example"
+  - recovery-app
+  - recovery-server
+  - example
+ignoredBuiltDependencies:
+  - bufferutil
+  - utf-8-validate
+onlyBuiltDependencies:
+  - '@swc/core'
+  - esbuild
+  - keccak

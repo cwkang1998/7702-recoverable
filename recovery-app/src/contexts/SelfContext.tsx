@@ -1,27 +1,27 @@
-import type { SelfAppBuilder } from '@selfxyz/core'
-import { type ReactNode, createContext, useContext, useState } from 'react'
+import type { SelfAppBuilder } from '@selfxyz/core';
+import { type ReactNode, createContext, useContext, useState } from 'react';
 
 interface SelfContextType {
-  self: SelfAppBuilder | null
-  setSelf: (self: SelfAppBuilder | null) => void
+  self: SelfAppBuilder | null;
+  setSelf: (self: SelfAppBuilder | null) => void;
 }
 
-const SelfContext = createContext<SelfContextType | null>(null)
+const SelfContext = createContext<SelfContextType | null>(null);
 
 export function SelfProvider({ children }: { children: ReactNode }) {
-  const [self, setSelf] = useState<SelfAppBuilder | null>(null)
+  const [self, setSelf] = useState<SelfAppBuilder | null>(null);
 
   return (
     <SelfContext.Provider value={{ self, setSelf }}>
       {children}
     </SelfContext.Provider>
-  )
+  );
 }
 
 export function useSelf() {
-  const context = useContext(SelfContext)
+  const context = useContext(SelfContext);
   if (!context) {
-    throw new Error('useSelf must be used within a SelfProvider')
+    throw new Error('useSelf must be used within a SelfProvider');
   }
-  return context
+  return context;
 }

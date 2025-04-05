@@ -1,12 +1,12 @@
-import { useAccount } from 'wagmi'
-import { AccountDetails } from './components/AccountDetails'
-import { InitializeAccount } from './components/InitializeAccount'
-import { Mint } from './components/Mint'
-import { Send } from './components/Send'
-import { client } from './config'
+import { useAccount } from 'wagmi';
+import { AccountDetails } from './components/AccountDetails';
+import { InitializeAccount } from './components/InitializeAccount';
+import { Mint } from './components/Mint';
+import { Send } from './components/Send';
+import { client } from './config';
 
 export function App() {
-  const { address } = useAccount()
+  const { address } = useAccount();
 
   return (
     <div>
@@ -43,5 +43,5 @@ export function App() {
         </>
       )}
     </div>
-  )
+  );
 }

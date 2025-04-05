@@ -1,6 +1,6 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
-import Home from './pages/home'
-import Recovery from './pages/recovery'
+import { BrowserRouter, Route, Routes } from 'react-router';
+import Home from './pages/home';
+import Recovery from './pages/recovery';
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
         <Route path="/recovery" element={<Recovery />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

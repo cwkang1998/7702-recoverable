@@ -1,13 +1,13 @@
-import { type BaseError, parseEther } from 'viem'
-import { useAccount } from 'wagmi'
-import { useSendCalls } from 'wagmi/experimental'
-import { client } from '../config'
-import { ExperimentERC20 } from '../contracts'
+import { type BaseError, parseEther } from 'viem';
+import { useAccount } from 'wagmi';
+import { useSendCalls } from 'wagmi/experimental';
+import { client } from '../config';
+import { ExperimentERC20 } from '../contracts';
 
 export function Mint() {
-  const { address } = useAccount()
+  const { address } = useAccount();
 
-  const send = useSendCalls()
+  const send = useSendCalls();
 
   return (
     <div>
@@ -15,7 +15,7 @@ export function Mint() {
       <button
         disabled={send.isPending}
         onClick={(event) => {
-          event.preventDefault()
+          event.preventDefault();
           send
             .sendCallsAsync({
               account: address!,
@@ -29,11 +29,11 @@ export function Mint() {
               ],
             })
             .then((result) => {
-              console.log(result)
+              console.log(result);
             })
             .catch((error) => {
-              console.error(error)
-            })
+              console.error(error);
+            });
         }}
         type="button"
       >
@@ -55,5 +55,5 @@ export function Mint() {
         </p>
       )}
     </div>
-  )
+  );
 }
