@@ -1,16 +1,16 @@
-import type { BaseError } from 'viem'
+import type { BaseError } from 'viem';
 
-import { client } from '../config'
-import { Account } from '../modules/Account'
+import { client } from '../config';
+import { Account } from '../modules/Account';
 
 export function InitializeAccount() {
   const { data: hash, ...createMutation } = Account.useCreate({
     client,
-  })
-  const loadMutation = Account.useLoad({ client })
+  });
+  const loadMutation = Account.useLoad({ client });
 
-  const isPending = createMutation.isPending || loadMutation.isPending
-  const error = createMutation.error || loadMutation.error
+  const isPending = createMutation.isPending || loadMutation.isPending;
+  const error = createMutation.error || loadMutation.error;
 
   return (
     <div>
@@ -42,5 +42,5 @@ export function InitializeAccount() {
       )}
       {error && <p>{(error as BaseError).shortMessage ?? error.message}</p>}
     </div>
-  )
+  );
 }

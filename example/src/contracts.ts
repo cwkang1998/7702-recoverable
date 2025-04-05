@@ -134,7 +134,7 @@ export const ExperimentDelegation = {
     { type: 'error', name: 'KeyNotAuthorized', inputs: [] },
   ],
   address: '0xFde60F1FE9E8D425272B98beE16aCC795F2B83b9',
-} as const
+} as const;
 
 export const ExperimentERC20 = {
   abi: [
@@ -324,4 +324,4 @@ export const ExperimentERC20 = {
     { type: 'error', name: 'TotalSupplyOverflow', inputs: [] },
   ],
   address: '0x0A8071a6E269E0CAF4900bf6a712160876cda052',
-} as const
+} as const;

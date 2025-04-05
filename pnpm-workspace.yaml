@@ -6,6 +6,7 @@ ignoredBuiltDependencies:
   - bufferutil
   - utf-8-validate
 onlyBuiltDependencies:
+  - '@biomejs/biome'
   - '@swc/core'
   - esbuild
   - keccak

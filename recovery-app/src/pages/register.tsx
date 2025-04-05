@@ -1,9 +1,8 @@
 import { SelfQRcode } from '@selfxyz/qrcode';
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { InitializeAccount } from '../components/InitializeAccount';
-import { useState } from 'react';
 import { useSelfxyz } from '../hooks/useSelfxyz';
-
 
 export default function Register() {
   const { address } = useAccount();
@@ -51,7 +50,8 @@ export default function Register() {
 
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
               <p>
-                After scanning, your proof will be registered and linked to your account.
+                After scanning, your proof will be registered and linked to your
+                account.
               </p>
             </div>
           </>
@@ -59,4 +59,4 @@ export default function Register() {
       </div>
     </div>
   );
-} 
+}

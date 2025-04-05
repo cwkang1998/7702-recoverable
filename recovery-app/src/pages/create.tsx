@@ -33,7 +33,9 @@ export default function Create() {
                 />
               </svg>
               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm text-gray-600 dark:text-gray-300">
-                If you lose your passkey, you can use Self protocol to verify your passport and delegate your account to a new passkey. This ensures you never lose access to your account.
+                If you lose your passkey, you can use Self protocol to verify
+                your passport and delegate your account to a new passkey. This
+                ensures you never lose access to your account.
               </div>
             </div>
           </div>
@@ -47,7 +49,7 @@ export default function Create() {
           >
             Register Proof
           </button>
-          
+
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -59,4 +61,4 @@ export default function Create() {
       </div>
     </div>
   );
-} 
+}

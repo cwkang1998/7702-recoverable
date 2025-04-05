@@ -1,9 +1,9 @@
-import { formatEther } from 'viem'
-import { useReadContract } from 'wagmi'
+import { formatEther } from 'viem';
+import { useReadContract } from 'wagmi';
 
-import { client } from '../config'
-import { ExperimentERC20 } from '../contracts'
-import type { Account } from '../modules/Account'
+import { client } from '../config';
+import { ExperimentERC20 } from '../contracts';
+import type { Account } from '../modules/Account';
 
 export function AccountDetails({ account }: { account: Account.Account }) {
   const { data: expBalance } = useReadContract({
@@ -13,7 +13,7 @@ export function AccountDetails({ account }: { account: Account.Account }) {
     query: {
       refetchInterval: 1000,
     },
-  })
+  });
 
   return (
     <div>
@@ -34,13 +34,13 @@ export function AccountDetails({ account }: { account: Account.Account }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 const numberIntl = new Intl.NumberFormat('en-US', {
   maximumSignificantDigits: 6,
-})
+});
 
 export function formatEth(wei: bigint) {
-  return numberIntl.format(Number(formatEther(wei)))
+  return numberIntl.format(Number(formatEther(wei)));
 }

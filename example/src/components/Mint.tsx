@@ -1,9 +1,9 @@
-import { type BaseError, encodeFunctionData, parseEther } from 'viem'
+import { type BaseError, encodeFunctionData, parseEther } from 'viem';
 
-import { useWaitForTransactionReceipt } from 'wagmi'
-import { client } from '../config'
-import { ExperimentERC20 } from '../contracts'
-import { Account } from '../modules/Account'
+import { useWaitForTransactionReceipt } from 'wagmi';
+import { client } from '../config';
+import { ExperimentERC20 } from '../contracts';
+import { Account } from '../modules/Account';
 
 export function Mint({ account }: { account: Account.Account }) {
   const {
@@ -13,13 +13,13 @@ export function Mint({ account }: { account: Account.Account }) {
     ...executeQuery
   } = Account.useExecute({
     client,
-  })
+  });
 
-  const receiptQuery = useWaitForTransactionReceipt({ hash })
+  const receiptQuery = useWaitForTransactionReceipt({ hash });
 
   const isPending =
-    receiptQuery.fetchStatus === 'fetching' || executeQuery.isPending
-  const isSuccess = receiptQuery.isSuccess && executeQuery.isSuccess
+    receiptQuery.fetchStatus === 'fetching' || executeQuery.isPending;
+  const isSuccess = receiptQuery.isSuccess && executeQuery.isSuccess;
 
   return (
     <div>
@@ -59,5 +59,5 @@ export function Mint({ account }: { account: Account.Account }) {
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAccount } from 'wagmi';
 import { celoAlfajores } from 'wagmi/chains';
-import { useState } from 'react';
 
 interface InitializeAccountProps {
   onSuccess?: () => void;
@@ -17,7 +17,7 @@ export function InitializeAccount({ onSuccess }: InitializeAccountProps) {
     try {
       setIsCreating(true);
       setError(null);
-      
+
       const credential = await navigator.credentials.create({
         publicKey: {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -42,7 +42,7 @@ export function InitializeAccount({ onSuccess }: InitializeAccountProps) {
           },
         },
       });
-      
+
       console.log('Credential created:', credential);
       // Call onSuccess if provided
       if (onSuccess) {
@@ -95,4 +95,4 @@ export function InitializeAccount({ onSuccess }: InitializeAccountProps) {
       )}
     </div>
   );
-} 
+}

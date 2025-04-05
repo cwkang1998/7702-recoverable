@@ -69,13 +69,13 @@ export namespace Account {
         id: hexToBytes(account.address),
       },
     });
-    console.log("created WebAuthn credential");
+    console.log('created WebAuthn credential');
 
     const publicKey = parsePublicKey(credential.publicKey);
     console.log('Public key:', publicKey);
 
     // Authorize the WebAuthn key on the EOA.
-    console.log("sending authorize transaction to smart contract");
+    console.log('sending authorize transaction to smart contract');
     const hash = await authorize({
       account,
       client,
@@ -123,13 +123,13 @@ export namespace Account {
 
     // Sign an EIP-7702 authorization to inject the ExperimentDelegation contract
     // onto the EOA.
-    console.log("signing authorization: ", account);
+    console.log('signing authorization: ', account);
     const authorization = await signAuthorization(client, {
       account,
       contractAddress: ExperimentDelegation.address,
       delegate: true,
     });
-    console.log("signed authorization");
+    console.log('signed authorization');
 
     // Send an EIP-7702 contract write to authorize the WebAuthn key on the EOA.
     const hash = await writeContract(client, {
@@ -151,7 +151,7 @@ export namespace Account {
       ],
       authorizationList: [authorization],
     });
-    console.log("sent authorize transaction");
+    console.log('sent authorize transaction');
 
     return hash;
   }
@@ -244,6 +244,10 @@ export namespace Account {
       address: account.address,
       functionName: 'execute',
       args: [calls_encoded, { r, s }, webauthn, 0, false],
+<<<<<<< HEAD
+=======
+      account: client.account.address,
+>>>>>>> 34d1939 (chore: add wallet client for server)
     });
     console.log("sent execute transaction");
     return hash;

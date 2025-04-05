@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
+import Create from './pages/create';
 import Home from './pages/home';
 import Recovery from './pages/recovery';
-import UpdatePasskey from './pages/update-passkey';
 import Register from './pages/register';
-import Create from './pages/create';
+import UpdatePasskey from './pages/update-passkey';
 
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

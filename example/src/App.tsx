@@ -1,12 +1,12 @@
-import { AccountDetails } from './components/AccountDetails'
-import { InitializeAccount } from './components/InitializeAccount'
-import { Mint } from './components/Mint'
-import { Send } from './components/Send'
-import { client } from './config'
-import { Account } from './modules/Account'
+import { AccountDetails } from './components/AccountDetails';
+import { InitializeAccount } from './components/InitializeAccount';
+import { Mint } from './components/Mint';
+import { Send } from './components/Send';
+import { client } from './config';
+import { Account } from './modules/Account';
 
 export function App() {
-  const { data: account } = Account.useQuery()
+  const { data: account } = Account.useQuery();
 
   return (
     <div>
@@ -43,5 +43,5 @@ export function App() {
         </>
       )}
     </div>
-  )
+  );
 }

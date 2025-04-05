@@ -1,25 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {SelfVerificationRoot} from "@selfxyz/contracts/contracts/abstract/SelfVerificationRoot.sol";
-import {ISelfVerificationRoot} from "@selfxyz/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
-import {IVcAndDiscloseCircuitVerifier} from "@selfxyz/contracts/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
-import {IIdentityVerificationHubV1} from "@selfxyz/contracts/contracts/interfaces/IIdentityVerificationHubV1.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {CircuitConstants} from "@selfxyz/contracts/contracts/constants/CircuitConstants.sol";
+import {SelfVerificationRoot} from "self/contracts/contracts/abstract/SelfVerificationRoot.sol";
+import {ISelfVerificationRoot} from "self/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
+import {IVcAndDiscloseCircuitVerifier} from "self/contracts/contracts/interfaces/IVcAndDiscloseCircuitVerifier.sol";
+import {IIdentityVerificationHubV1} from "self/contracts/contracts/interfaces/IIdentityVerificationHubV1.sol";
+import {CircuitConstants} from "self/contracts/contracts/constants/CircuitConstants.sol";
+import {Ownable} from "solady/auth/Ownable.sol";
+import {ExperimentDelegation} from "../ExperimentDelegation.sol";
 
 /// @title Recovery
-/// @notice Contract for managing account recovery using selfxyz's proof and nullifier system
+/// @notice Contract for managing account recovery using selfxyz's proof and nullifier systemclear
 contract Recovery is SelfVerificationRoot, Ownable {
     ////////////////////////////////////////////////////////////////////////
     // Storage
     ////////////////////////////////////////////////////////////////////////
 
-    /// @notice Mapping from account address to their recovery key
-    mapping(address => bytes) public accountRecoveryKeys;
-
-    /// @notice Mapping to track used nullifiers
-    mapping(uint256 => bool) internal _nullifiers;
+    /// @notice Mapping from nullifier to their account addresses
+    mapping(uint256 => address) public nullifierToAccountMapping;
 
     ////////////////////////////////////////////////////////////////////////
     // Events
@@ -35,10 +33,10 @@ contract Recovery is SelfVerificationRoot, Ownable {
     // Errors
     ////////////////////////////////////////////////////////////////////////
 
-    /// @notice Thrown when a nullifier has already been used
     error RegisteredNullifier();
 
-    /// @notice Thrown when a key is not authorized
+    error AccountNotFound();
+
     error KeyNotAuthorized();
 
     ////////////////////////////////////////////////////////////////////////
@@ -114,10 +112,14 @@ contract Recovery is SelfVerificationRoot, Ownable {
             revert KeyNotAuthorized();
         }
 
-        // Mark nullifier as used
-        _nullifiers[result.nullifier] = true;
-
         // Get the new account address from the revealed data
+        address accountAddress = nullifierToAccountMapping[result.nullifier];
+        if (accountAddress == address(0)) {
+            revert AccountNotFound();
+        }
+
+        ExperimentDelegation(accountAddress).set()
+
         address newAccount = address(uint160(result.revealedDataPacked[0]));
 
         // Transfer the recovery key to the new account

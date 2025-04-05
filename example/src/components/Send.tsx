@@ -1,19 +1,19 @@
-import { encodeFunctionData, formatEther, parseEther } from 'viem'
-import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts'
-import { useReadContracts, useWaitForTransactionReceipt } from 'wagmi'
+import { encodeFunctionData, formatEther, parseEther } from 'viem';
+import { generatePrivateKey, privateKeyToAddress } from 'viem/accounts';
+import { useReadContracts, useWaitForTransactionReceipt } from 'wagmi';
 
-import { client } from '../config'
-import { ExperimentERC20 } from '../contracts'
-import { Account } from '../modules/Account'
+import { client } from '../config';
+import { ExperimentERC20 } from '../contracts';
+import { Account } from '../modules/Account';
 
-const alice = privateKeyToAddress(generatePrivateKey())
-const bob = privateKeyToAddress(generatePrivateKey())
+const alice = privateKeyToAddress(generatePrivateKey());
+const bob = privateKeyToAddress(generatePrivateKey());
 
 export function Send({ account }: { account: Account.Account }) {
   const balanceOf = {
     ...ExperimentERC20,
     functionName: 'balanceOf',
-  } as const
+  } as const;
 
   const { data: balances } = useReadContracts({
     contracts: [
@@ -33,7 +33,7 @@ export function Send({ account }: { account: Account.Account }) {
     query: {
       refetchInterval: 1000,
     },
-  })
+  });
 
   const {
     data: hash,
@@ -41,24 +41,24 @@ export function Send({ account }: { account: Account.Account }) {
     isPending,
   } = Account.useExecute({
     client,
-  })
+  });
 
   const { data: receipt, ...receiptQuery } = useWaitForTransactionReceipt({
     hash,
-  })
+  });
 
-  if (!balances) return null
+  if (!balances) return null;
 
-  const [selfBalance, aliceBalance, bobBalance] = balances
+  const [selfBalance, aliceBalance, bobBalance] = balances;
 
   return (
     <form
       onSubmit={async (e) => {
-        e.preventDefault()
-        const form = e.target as HTMLFormElement
-        const formData = new FormData(form)
-        const aliceValue = formData.get('value.alice') as string
-        const bobValue = formData.get('value.bob') as string
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const aliceValue = formData.get('value.alice') as string;
+        const bobValue = formData.get('value.bob') as string;
 
         await execute({
           account,
@@ -80,9 +80,9 @@ export function Send({ account }: { account: Account.Account }) {
               }),
             },
           ],
-        })
+        });
 
-        form.reset()
+        form.reset();
       }}
     >
       <p>Send EXP (ERC20) to other accounts by filling out the fields below.</p>
@@ -155,14 +155,14 @@ export function Send({ account }: { account: Account.Account }) {
         </p>
       )}
     </form>
-  )
+  );
 }
 
 const numberIntl = new Intl.NumberFormat('en-US', {
   maximumSignificantDigits: 6,
-})
+});
 
 export function formatExp(wei: bigint | undefined) {
-  if (!wei) return '0'
-  return numberIntl.format(Number(formatEther(wei)))
+  if (!wei) return '0';
+  return numberIntl.format(Number(formatEther(wei)));
 }
