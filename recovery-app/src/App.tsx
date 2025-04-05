@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import Home from './pages/home';
 import Recovery from './pages/recovery';
 import UpdatePasskey from './pages/update-passkey';
+import Register from './pages/register';
+import Create from './pages/create';
 
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -26,6 +28,8 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/create" element={<Create />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/recovery" element={<Recovery />} />
                 <Route path="/update-passkey" element={<UpdatePasskey />} />
               </Routes>
