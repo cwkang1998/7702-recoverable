@@ -7,5 +7,5 @@ cd contracts
 forge script scripts/Deploy.s.sol:Deploy --rpc-url sepolia --broadcast
 ```
 
-ExperimentDelegation deployed to: `0xE117313ee57a33567A03DcEA7bf23A3669e5C3f3`
-ExperimentERC20 deployed to: `0xcf89cdAfE88d13a2B96710c9709B7E6D7Aa654E5`
+ExperimentDelegation deployed to: `0x0D8fab0941Cc8acA04d701A4548E7C6B909345f1`
+ExperimentERC20 deployed to: `0x1725fddAf692aB69D8cB2aD28D8DDbA43A538B14`

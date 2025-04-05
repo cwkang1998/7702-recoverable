@@ -69,11 +69,13 @@ export namespace Account {
         id: hexToBytes(account.address),
       },
     });
+    console.log("created WebAuthn credential");
 
     const publicKey = parsePublicKey(credential.publicKey);
     console.log('Public key:', publicKey);
 
     // Authorize the WebAuthn key on the EOA.
+    console.log("sending authorize transaction to smart contract");
     const hash = await authorize({
       account,
       client,
@@ -126,6 +128,7 @@ export namespace Account {
       contractAddress: ExperimentDelegation.address,
       delegate: true,
     });
+    console.log("signed authorization");
 
     // Send an EIP-7702 contract write to authorize the WebAuthn key on the EOA.
     const hash = await writeContract(client, {
@@ -200,7 +203,7 @@ export namespace Account {
     const nonce = await readContract(client, {
       abi: ExperimentDelegation.abi,
       address: account.address,
-      functionName: 'executeNonce',
+      functionName: 'nonce',
     });
 
     // Encode calls into format required by the contract.

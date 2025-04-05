@@ -1,14 +1,14 @@
 import { QueryClient } from '@tanstack/react-query'
 import { http, createConfig } from 'wagmi'
-import { odysseyTestnet } from 'wagmi/chains'
+import { sepolia } from 'wagmi/chains'
 
 export const queryClient = new QueryClient()
 
 export const wagmiConfig = createConfig({
-  chains: [odysseyTestnet],
+  chains: [sepolia],
   pollingInterval: 1000,
   transports: {
-    [odysseyTestnet.id]: http(),
+    [sepolia.id]: http(),
   },
 })
 

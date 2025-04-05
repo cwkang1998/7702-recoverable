@@ -59,28 +59,6 @@ contract ExperimentDelegation is MultiSendCallOnly {
     /// @notice Internal nonce used for replay protection.
     uint256 public nonce;
 
-    /// @notice Authorizes a new public key.
-    /// @param publicKey - The public key to authorize.
-    /// @param keyType - The type of key. 0 = P256, 1 = WebAuthn-P256, 2 = WebCrypto-P256.
-    /// @param expiry - The Unix timestamp at which the key expires.
-    function authorize(
-        ECDSA.PublicKey calldata publicKey,
-        KeyType keyType,
-        uint256 expiry
-    ) public returns (uint32 publicKeyIndex) {
-        if (msg.sender != address(this)) revert InvalidAuthority();
-
-        Key memory key = Key({
-            authorized: true,
-            expiry: expiry,
-            keyType: keyType,
-            publicKey: publicKey
-        });
-        keys.push(key);
-
-        return uint32(keys.length - 1);
-    }
-
     /// @notice Authorizes a new public key on behalf of the Authority, provided the Authority's signature.
     /// @param publicKey - The public key to authorize.
     /// @param keyType - The type of key. 0 = P256, 1 = WebAuthn-P256, 2 = WebCrypto-P256.
@@ -92,85 +70,24 @@ contract ExperimentDelegation is MultiSendCallOnly {
         uint256 expiry,
         ECDSA.RecoveredSignature calldata signature
     ) public returns (uint32 publicKeyIndex) {
-        bytes32 digest = keccak256(
-            abi.encodePacked(nonce++, publicKey.x, publicKey.y, expiry)
-        );
-        address signer = ecrecover(
-            digest,
-            signature.yParity == 0 ? 27 : 28,
-            bytes32(signature.r),
-            bytes32(signature.s)
-        );
+        bytes32 digest = keccak256(abi.encodePacked(nonce++, publicKey.x, publicKey.y, expiry));
+        address signer = ecrecover(digest, signature.yParity == 0 ? 27 : 28, bytes32(signature.r), bytes32(signature.s));
         if (signer != address(this)) revert InvalidSignature();
 
-        Key memory key = Key({
-            authorized: true,
-            expiry: expiry,
-            keyType: keyType,
-            publicKey: publicKey
-        });
+        Key memory key = Key({authorized: true, expiry: expiry, keyType: keyType, publicKey: publicKey});
         keys.push(key);
 
         return uint32(keys.length - 1);
     }
 
-    /// @notice Revokes an authorized public key.
-    /// @param publicKeyIndex - The index of the public key to revoke.
-    function revoke(uint32 publicKeyIndex) public {
-        if (msg.sender != address(this)) revert InvalidAuthority();
-        keys[publicKeyIndex].authorized = false;
-    }
-
     /// @notice Revokes an authorized public key on behalf of the Authority, provided the Authority's signature.
     /// @param publicKeyIndex - The index of the public key to revoke.
     /// @param signature - EOA secp256k1 signature over the public key index.
-    function revoke(
-        uint32 publicKeyIndex,
-        ECDSA.RecoveredSignature calldata signature
-    ) public {
-        bytes32 digest = keccak256(
-            abi.encodePacked(nonce++, publicKeyIndex)
-        );
-        address signer = ecrecover(
-            digest,
-            signature.yParity == 0 ? 27 : 28,
-            bytes32(signature.r),
-            bytes32(signature.s)
-        );
+    function revoke(uint32 publicKeyIndex, ECDSA.RecoveredSignature calldata signature) public {
+        bytes32 digest = keccak256(abi.encodePacked(nonce++, publicKeyIndex));
+        address signer = ecrecover(digest, signature.yParity == 0 ? 27 : 28, bytes32(signature.r), bytes32(signature.s));
         if (signer != address(this)) revert InvalidSignature();
         keys[publicKeyIndex].authorized = false;
-    }
-
-    /// @notice Executes a set of calls.
-    /// @param calls - The calls to execute.
-    function execute(bytes memory calls) public {
-        if (msg.sender != address(this)) revert InvalidAuthority();
-        multiSend(calls);
-    }
-
-    /// @notice Executes a set of calls on behalf of the Authority, provided a P256 signature over the calls and a public key index.
-    /// @param calls - The calls to execute.
-    /// @param signature - The P256 signature over the calls: `p256.sign(keccak256(nonce ‖ calls))`.
-    /// @param publicKeyIndex - The index of the authorized public key to use.
-    /// @param prehash - Whether to SHA-256 hash the digest.
-    function execute(
-        bytes memory calls,
-        ECDSA.Signature memory signature,
-        uint32 publicKeyIndex,
-        bool prehash
-    ) public {
-        bytes32 digest = keccak256(abi.encodePacked(nonce++, calls));
-        if (prehash) digest = sha256(abi.encodePacked(digest));
-
-        Key memory key = keys[publicKeyIndex];
-        if (!key.authorized) revert KeyNotAuthorized();
-        if (key.expiry > 0 && key.expiry < block.timestamp) revert KeyExpired();
-
-        if (!P256.verify(digest, signature, key.publicKey)) {
-            revert InvalidSignature();
-        }
-
-        multiSend(calls);
     }
 
     /// @notice Executes a set of calls on behalf of the Authority, provided a WebAuthn-wrapped P256 signature over the calls, the WebAuthn metadata, and an invoker index.
@@ -193,8 +110,9 @@ contract ExperimentDelegation is MultiSendCallOnly {
         if (!key.authorized) revert KeyNotAuthorized();
         if (key.expiry > 0 && key.expiry < block.timestamp) revert KeyExpired();
 
-        if (!WebAuthnP256.verify(challenge, metadata, signature, key.publicKey))
+        if (!WebAuthnP256.verify(challenge, metadata, signature, key.publicKey)) {
             revert InvalidSignature();
+        }
 
         multiSend(calls);
     }
