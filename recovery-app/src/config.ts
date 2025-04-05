@@ -14,8 +14,8 @@ const account = privateKeyToAccount(privateKey);
 
 export const client = createWalletClient({
   account,
-  chain: zircuitGarfieldTestnet,
-  transport: http(),
+  chain: sepolia,
+  transport: http(rpcUrl),
 }).extend(publicActions);
 
 export const wagmiConfig = createConfig({

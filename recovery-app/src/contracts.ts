@@ -187,7 +187,7 @@ export const ExperimentDelegation = {
     { type: 'error', name: 'KeyExpired', inputs: [] },
     { type: 'error', name: 'KeyNotAuthorized', inputs: [] },
   ],
-  address: '0x0D8fab0941Cc8acA04d701A4548E7C6B909345f1',
+  address: '0xa4E19a805347E4b72252aF883C0E4C3Fc8601e1F',
 } as const;
 
 export const ExperimentERC20 = {
