@@ -6,7 +6,9 @@ remappings = [
 ]
 via_ir = true
 evm_version = "prague"
+solc_version = "0.8.28"
 
 [rpc_endpoints]
 localhost = "http://localhost:8545"
 sepolia = "https://eth-sepolia.g.alchemy.com/v2/${RPC_API_KEY}"
+garfield = "https://garfield-testnet.zircuit.com/"
