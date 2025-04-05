@@ -2,11 +2,12 @@ packages:
   - recovery-app
   - recovery-server
   - example
+
 ignoredBuiltDependencies:
   - bufferutil
   - utf-8-validate
 onlyBuiltDependencies:
-  - '@biomejs/biome'
-  - '@swc/core'
+  - "@biomejs/biome"
+  - "@swc/core"
   - esbuild
   - keccak

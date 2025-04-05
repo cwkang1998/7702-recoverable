@@ -4,6 +4,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { serverConfig } from './server-config.js';
 
+const publicKeyToKeyIndexMapping = new Map<string, number>();
 const verificationResults = new Map<string, SelfVerificationResult>();
 
 export const createApp = (endpoint_url: string) => {

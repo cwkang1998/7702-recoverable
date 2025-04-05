@@ -1,4 +1,3 @@
-
 export const appConfig = {
   appName: '7702 Recoverable',
   scope: '7702-recoverable-17135',

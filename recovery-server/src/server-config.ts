@@ -1,3 +1,9 @@
+import dotenv from 'dotenv';
+
+if (process.env.DEBUG) {
+  dotenv.config();
+}
+
 const privateKey = process.env.PRIVATE_KEY as `0x${string}`;
 
 if (!privateKey) {

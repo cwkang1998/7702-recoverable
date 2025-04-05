@@ -44,7 +44,7 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
     ////////////////////////////////////////////////////////////////////////
 
     /// @notice Mapping from nullifier to their account addresses
-    mapping(uint256 => address[]) public nullifierToAccountsMapping;
+    mapping(uint256 => uint256) public nullifierToKeyIndexMapping;
 
     ////////////////////////////////////////////////////////////////////////
     // Errors
@@ -156,20 +156,12 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
         multiSend(calls);
     }
 
-    function getAddressesFromNullifier(uint256 nullifier) public view returns (address[] memory) {
-        return nullifierToAccountsMapping[nullifier];
+    function getKeyIndexesFromNullifier(uint256 nullifier) public view returns (uint256[] memory) {
+        return nullifierToKeyIndexMapping[nullifier];
     }
 
-    function addAccountForNullifier(uint256 nullifier, address memory account) public {
-        nullifierToAccountsMapping[nullifier].push(account);
-    }
-
-    function removeAccountForNullifier(uint256 nullifier, address account) public {
-        for (uint256 i = 0; i < nullifierToAccountsMapping[nullifier].length; i++) {
-            if (nullifierToAccountsMapping[nullifier][i] == account) {
-                delete nullifierToAccountsMapping[nullifier][i];
-            }
-        }
+    function setKeyIndexForNullifier(uint256 nullifier, uint256 keyIndex) public {
+        nullifierToKeyIndexMapping[nullifier] = keyIndex;
     }
 
     /// @notice Verify a self proof and recover account if valid
@@ -177,7 +169,8 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
     function manualVerifySelfProof(
         IVcAndDiscloseCircuitVerifier.VcAndDiscloseProof memory proof,
         ECDSA.PublicKey calldata publicKey,
-        KeyType keyType
+        KeyType keyType,
+        uint256 expiry
     ) public {
         if (_scope != proof.pubSignals[CircuitConstants.VC_AND_DISCLOSE_SCOPE_INDEX]) {
             revert InvalidScope();
@@ -203,15 +196,19 @@ contract ExperimentDelegation is MultiSendCallOnly, SelfVerificationRoot, Ownabl
             })
         );
 
-        // Logic to actually recover the account here..
+        // Logic to recover the account.
+        uint256 keyIndex = nullifierToKeyIndexMapping[result.nullifier];
+        if (keyIndex == 0) revert AccountNotFound();
 
-        // if (_isWithinBirthdayWindow(result.revealedDataPacked)) {
-        //     _nullifiers[result.nullifier] = true;
-        //     usdc.safeTransfer(address(uint160(result.userIdentifier)), CLAIMABLE_AMOUNT);
-        //     emit USDCClaimed(address(uint160(result.userIdentifier)), CLAIMABLE_AMOUNT);
-        // } else {
-        //     revert("Not eligible: Not within 5 days of birthday");
-        // }
+        // Revoke old key
+        keys[publicKeyIndex].authorized = false;
+
+        // Authorize new key
+        Key memory key = Key({authorized: true, expiry: expiry, keyType: keyType, publicKey: publicKey});
+        keys.push(key);
+
+        // Set nullifier to new key index
+        nullifierToKeyIndexMapping[result.nullifier] = keyIndex;
     }
 
     fallback() external payable {}
