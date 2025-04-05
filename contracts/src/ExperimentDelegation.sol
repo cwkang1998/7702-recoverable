@@ -138,6 +138,10 @@ contract ExperimentDelegation is MultiSendCallOnly {
         keys.push(key);
     }
 
+    function getLatestKeyIndex() public view returns (uint256 keyIndex) {
+        keyIndex = keys.length - 1;
+    }
+
     fallback() external payable {}
     receive() external payable {}
 }
