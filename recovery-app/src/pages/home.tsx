@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
+import { Account } from '../modules/Account';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { data: account } = Account.useQuery();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
@@ -20,9 +22,14 @@ export default function Home() {
           <button
             type="button"
             onClick={() => navigate('/create')}
-            className="w-full px-4 py-2 text-white bg-gray-800 dark:bg-gray-700 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+            disabled={!!account}
+            className={`w-full px-4 py-2 text-white rounded-lg transition-colors ${
+              account
+                ? 'bg-gray-500 cursor-not-allowed'
+                : 'bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600'
+            }`}
           >
-            Create New Account
+            {account ? 'Account Already Created' : 'Create New Account'}
           </button>
           <button
             type="button"

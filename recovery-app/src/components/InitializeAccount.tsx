@@ -1,52 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAccount } from 'wagmi';
+import { Account } from '../modules/Account';
+import { client } from '../config';
 import { celoAlfajores } from 'wagmi/chains';
 
 interface InitializeAccountProps {
-  onSuccess?: () => void;
+  onSuccess?: (result: { hash: string; publicKey: { x: bigint; y: bigint } }) => void;
+  onStart?: () => void;
 }
 
-export function InitializeAccount({ onSuccess }: InitializeAccountProps) {
-  const navigate = useNavigate();
+export function InitializeAccount({ onSuccess, onStart }: InitializeAccountProps) {
+  const { data: result, ...createMutation } = Account.useCreate({
+    client,
+  });
   const { address } = useAccount();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async () => {
     try {
+      if (onStart) {
+        onStart();
+      }
       setIsCreating(true);
       setError(null);
-
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: crypto.getRandomValues(new Uint8Array(32)),
-          rp: {
-            name: '7702 Recoverable',
-            id: window.location.hostname,
-          },
-          user: {
-            id: crypto.getRandomValues(new Uint8Array(32)),
-            name: 'user',
-            displayName: 'User',
-          },
-          pubKeyCredParams: [
-            {
-              type: 'public-key',
-              alg: -7, // ES256
-            },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform',
-            userVerification: 'required',
-          },
-        },
-      });
-
-      console.log('Credential created:', credential);
-      // Call onSuccess if provided
+      
+      const result = await createMutation.mutateAsync();
+      console.log(result);
+      
+      // Call onSuccess only after mutation completes successfully
       if (onSuccess) {
-        onSuccess();
+        onSuccess(result);
       }
     } catch (error) {
       console.error('Error creating credential:', error);

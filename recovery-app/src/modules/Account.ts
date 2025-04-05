@@ -75,8 +75,8 @@ export namespace Account {
       client,
       publicKey,
     });
-
     await waitForTransactionReceipt(client, { hash });
+    console.log('Hash:', hash);
 
     queryClient.setQueryData(['account'], {
       address: account.address,
@@ -87,7 +87,7 @@ export namespace Account {
       },
     });
 
-    return hash;
+    return { hash, publicKey };
   }
 
   /**
@@ -142,7 +142,6 @@ export namespace Account {
         },
       ],
       authorizationList: [authorization],
-      account: null, // defer to sequencer to fill
     });
 
     return hash;
