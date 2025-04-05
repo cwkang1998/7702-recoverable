@@ -1,8 +1,11 @@
 import { SelfQRcode } from '@selfxyz/qrcode';
+import { useNavigate } from 'react-router';
 import { useSelfxyz } from '../hooks/useSelfxyz';
 
 export default function Recovery() {
   const { selfApp } = useSelfxyz();
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-8">
@@ -21,6 +24,7 @@ export default function Recovery() {
             selfApp={selfApp}
             onSuccess={() => {
               console.log('Verification successful');
+              navigate('/update-passkey');
             }}
           />
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
