@@ -2,11 +2,13 @@
   "name": "recovery-server",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "serve:prod": "tsx src/prod.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
     "@hono/zod-validator": "^0.4.3",
+    "@ngrok/ngrok": "^1.4.1",
     "@selfxyz/core": "0.0.23",
     "hono": "^4.7.5",
     "zod": "^3.24.2"

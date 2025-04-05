@@ -1,4 +1,8 @@
+import { SelfQRcode } from '@selfxyz/qrcode';
+import { useSelfxyz } from '../hooks/useSelfxyz';
+
 export default function Recovery() {
+  const { selfApp } = useSelfxyz();
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-8">
@@ -12,15 +16,15 @@ export default function Recovery() {
           </p>
         </div>
 
-        {/* QR Code Placeholder */}
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg flex flex-col items-center">
-          <div className="w-64 h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">
-              QR Code will appear here
-            </p>
-          </div>
+          <SelfQRcode
+            selfApp={selfApp}
+            onSuccess={() => {
+              console.log('Verification successful');
+            }}
+          />
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-            This QR code will expire in 5 minutes
+            {/* Place your captions here. */}
           </p>
         </div>
 
