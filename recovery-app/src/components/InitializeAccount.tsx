@@ -9,6 +9,7 @@ interface InitializeAccountProps {
   onSuccess?: (result: {
     hash: string;
     publicKey: { x: bigint; y: bigint };
+    keyIndex: bigint;
   }) => void;
   onStart?: () => void;
 }

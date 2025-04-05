@@ -10,10 +10,15 @@ export default function Register() {
   const [isCreatingPasskey, setIsCreatingPasskey] = useState(false);
   const [passkeyCreated, setPasskeyCreated] = useState(false);
   const [nullifier, setNullifier] = useState<string | null>(null);
+  const [keyIndex, setKeyIndex] = useState<bigint | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSelfVerificationSuccess = async () => {
+    if (!keyIndex) {
+      throw new Error('Key index not found');
+    }
+
     const verificationId = selfApp.userId;
     const response = await fetch(
       `${appConfig.endpoint}-result/${verificationId}`,
@@ -30,13 +35,16 @@ export default function Register() {
       navigate('/');
       try {
         const submitResponse = await fetch(
-          'http://localhost:3000/submit-nullifier',
+          `${appConfig.baseUrl}/register-recovery`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ nullifier: result.nullifier }),
+            body: JSON.stringify({
+              nullifier: result.nullifier,
+              keyIndex: keyIndex,
+            }),
           },
         );
 
@@ -54,10 +62,12 @@ export default function Register() {
   const handlePasskeyCreated = (result: {
     hash: string;
     publicKey: { x: bigint; y: bigint };
+    keyIndex: bigint;
   }) => {
     console.log(result);
     setPasskeyCreated(true);
     setIsCreatingPasskey(false);
+    setKeyIndex(result.keyIndex);
   };
 
   const handlePasskeyCreationStart = () => {

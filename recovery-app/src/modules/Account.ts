@@ -78,6 +78,18 @@ export namespace Account {
     await waitForTransactionReceipt(client, { hash });
     console.log('Hash:', hash);
 
+    const latestKeyIndex = await getLatestKeyIndex({
+      account: {
+        address: account.address,
+        authTransactionHash: hash,
+        key: {
+          id: credential.id,
+          publicKey,
+        },
+      },
+      client,
+    });
+
     queryClient.setQueryData(['account'], {
       address: account.address,
       authTransactionHash: hash,
@@ -87,7 +99,7 @@ export namespace Account {
       },
     });
 
-    return { hash, publicKey };
+    return { hash, publicKey, keyIndex: latestKeyIndex };
   }
 
   /**
@@ -98,7 +110,11 @@ export namespace Account {
     account,
     client,
     publicKey,
-  }: { account: PrivateKeyAccount; client: Client; publicKey: PublicKey }) {
+  }: {
+    account: PrivateKeyAccount;
+    client: Client;
+    publicKey: PublicKey;
+  }) {
     const keyType = 1; // WebAuthnP256
     const nonce = 0n; // initial nonce will always be 0
     const expiry = 0n; // no expiry
@@ -176,6 +192,20 @@ export namespace Account {
         id: raw.id,
         publicKey,
       },
+    });
+  }
+
+  export async function getLatestKeyIndex({
+    account,
+    client,
+  }: {
+    account: Account;
+    client: Client;
+  }) {
+    return await readContract(client, {
+      abi: ExperimentDelegation.abi,
+      address: account.address,
+      functionName: 'getLatestKeyIndex',
     });
   }
 
