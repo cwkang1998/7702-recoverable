@@ -22,6 +22,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/create" element={<Create />} />
+                {/* <Route path="/create7702" element={<Create7702 />} /> */}
                 <Route path="/register" element={<Register />} />
                 <Route path="/recovery" element={<Recovery />} />
                 <Route path="/update-passkey" element={<UpdatePasskey />} />

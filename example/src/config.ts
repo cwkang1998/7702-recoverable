@@ -1,6 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createWalletClient, publicActions } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { eip7702Actions } from 'viem/experimental';
 import { http, createConfig } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 
@@ -14,7 +15,9 @@ export const client = createWalletClient({
   account,
   chain: sepolia,
   transport: http(rpcUrl),
-}).extend(publicActions);
+})
+  .extend(publicActions)
+  .extend(eip7702Actions());
 
 export const wagmiConfig = createConfig({
   chains: [sepolia],

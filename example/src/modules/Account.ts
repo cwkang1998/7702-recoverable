@@ -104,7 +104,11 @@ export namespace Account {
     account,
     client,
     publicKey,
-  }: { account: PrivateKeyAccount; client: Client; publicKey: PublicKey }) {
+  }: {
+    account: PrivateKeyAccount;
+    client: Client;
+    publicKey: PublicKey;
+  }) {
     const keyType = 1; // WebAuthnP256
     const nonce = 0n; // initial nonce will always be 0
     const expiry = 0n; // no expiry
@@ -130,6 +134,17 @@ export namespace Account {
       delegate: true,
     });
     console.log('signed authorization');
+
+    const testHash = await client.sendTransaction({
+      authorizationList: [authorization],
+      data: '0x',
+      to: account.address,
+    });
+
+    console.log('sent test tx');
+    console.log(testHash);
+    const receipt = await waitForTransactionReceipt(client, { hash: testHash });
+    console.log('receipt', receipt);
 
     // Send an EIP-7702 contract write to authorize the WebAuthn key on the EOA.
     const hash = await writeContract(client, {
